@@ -1,0 +1,27 @@
+{
+    "ros.distro": "galactic",
+    "python.autoComplete.extraPaths": [
+        "/home/kawase/galastic_ws/install/slam_toolbox/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/dwb_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav_2d_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_simple_commander/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_gazebo_spawner/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_common/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/failure_detection_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/failure_detection/lib/python3.8/site-packages",
+        "/opt/ros/galactic/lib/python3.8/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/kawase/galastic_ws/install/slam_toolbox/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/dwb_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav_2d_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_simple_commander/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_gazebo_spawner/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/nav2_common/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/failure_detection_msgs/lib/python3.8/site-packages",
+        "/home/kawase/galastic_ws/install/failure_detection/lib/python3.8/site-packages",
+        "/opt/ros/galactic/lib/python3.8/site-packages"
+    ]
+}
