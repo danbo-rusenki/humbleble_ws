@@ -9,8 +9,7 @@
 ```bash
 mkdir -p ~/ros2_humble_ws/src
 cd ~/ros2_humble_ws/src
-git clone 
-
-rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
+git clone https://github.com/danbo-rusenki/humbleble_ws.git
+rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
 ```
