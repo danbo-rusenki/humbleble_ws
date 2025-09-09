@@ -21,8 +21,9 @@ rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 ```
 
 2. ワークスペースをビルド
+```bash
 cd ~/ros2_humble_ws
 colcon build --symlink-install
-
+```
 
 
