@@ -11,6 +11,10 @@ mkdir -p ~/ros2_humble_ws/src
 cd ~/ros2_humble_ws/src
 
 git clone https://github.com/danbo-rusenki/humbleble_ws.git
+git clone https://github.com/Ar-Ray-code/YOLOv5-ROS.git
+
+git clone https://github.com/vstoneofficial/mecanumrover_description.git -b humble
+git clone https://github.com/vstoneofficial/vs_rover_options_description.git -b humble
 
 rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
