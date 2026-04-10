@@ -43,18 +43,35 @@ find_package(OpenCV REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(PCL REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(octomap REQUIRED)
+find_package(octomap_msgs REQUIRED)
+
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+add_executable(rgb_pc_
+ src/rgb_pc_.cpp)
 
+add_executable(rgb_ali_
+ src/rgb_ali_.cpp)
+
+add_executable(align_pc
+ src/align_pc.cpp)
 
 add_executable(odom_tf2_broadcaster
  src/odom_tf2_broadcaster.cpp)
 
 add_executable(camera_to_amirbase
  src/camera_to_amirbase.cpp)
+
+add_executable(convertpc_
+ src/convertpc_.cpp)
+
+add_executable(compc_oct
+ src/compc_oct.cpp)
 
 
 set(dependencies
@@ -81,16 +98,30 @@ set(dependencies
   OpenCV
   image_transport
   moveit_ros_planning_interface
+  message_filters
+  octomap
+  octomap_msgs
 
 )
 
 ament_target_dependencies(odom_tf2_broadcaster ${dependencies})
 ament_target_dependencies(camera_to_amirbase ${dependencies})
+ament_target_dependencies(rgb_pc_ ${dependencies})
+ament_target_dependencies(rgb_ali_ ${dependencies})
+ament_target_dependencies(align_pc ${dependencies})
+ament_target_dependencies(convertpc_ ${dependencies})
+ament_target_dependencies(compc_oct ${dependencies})
+
 
 
 install(TARGETS
+    rgb_pc_
+    rgb_ali_
+    align_pc
     odom_tf2_broadcaster
     camera_to_amirbase
+    convertpc_
+    compc_oct
     DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files.

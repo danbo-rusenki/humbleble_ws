@@ -10,10 +10,10 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     description_package_path = get_package_share_path('amir_description')
-    # default_model_path = description_package_path / 'urdf/amir.xacro'
+    default_model_path = description_package_path / 'urdf/amir.xacro'
 
     # default_model_path = description_package_path / 'urdf/amir_mecanum3.xacro'
-    default_model_path = description_package_path / 'urdf/amir_mecanum3.urdf'
+    # default_model_path = description_package_path / 'urdf/amir_mecanum3.urdf'
 
     default_rviz_config_path = description_package_path / 'rviz/urdf.rviz'
 
