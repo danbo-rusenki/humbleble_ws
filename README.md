@@ -19,6 +19,8 @@ git clone https://github.com/vstoneofficial/vs_rover_options_description.git -b 
 rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
 ```
+ビルドする前に、研究室のAMIR/ros2_basic　をコピーする
+ros2_humble_ws　とは別に先にビルドしておく
 
 2. ワークスペースをビルド
 ```bash
