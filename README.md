@@ -29,3 +29,18 @@ colcon build --symlink-install
 ```
 
 
+
+
+# 実機を動かすコマンド(旧AMIR)
+## ターミナル1
+```
+cd amir_basic_ws
+source ~/amir_basic_ws/install/local_setup.bash
+sudo chmod 666 /dev/ttyUSB0
+ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0 -v6
+```
+
+
+
+
+
