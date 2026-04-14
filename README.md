@@ -19,8 +19,8 @@ git clone https://github.com/vstoneofficial/vs_rover_options_description.git -b 
 rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
 ```
-ビルドする前に、研究室のAMIR/ros2_basic　をコピーする
-ros2_humble_ws　とは別に先にビルドしておく
+ビルドする前に、研究室のAMIR/ros2_basic　をコピーする。
+ros2_humble_ws　とは別に先にビルドしておく。
 
 2. ワークスペースをビルド
 ```bash
@@ -32,6 +32,11 @@ colcon build --symlink-install
 
 
 # 実機を動かすコマンド(旧AMIR)
+ターミナル1~5はAMIRに搭載しているPCに入ってから実行する。IPアドレスは変更されることがよくあるので、適宜対応する。
+```
+ssh rover@192.168.11.6 -X
+```
+
 ## ターミナル1
 ```
 cd amir_basic_ws
@@ -39,8 +44,47 @@ source ~/amir_basic_ws/install/local_setup.bash
 sudo chmod 666 /dev/ttyUSB0
 ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0 -v6
 ```
-
-
-
+## ターミナル2
+```
+cd uros_ws
+source ~/uros_ws/install/local_setup.bash
+sudo chmod 666 /dev/ttyUSB1
+ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB1 -v4
+```
+## ターミナル3
+```
+ros2 launch mecanumrover3_bringup robot.launch.py
+```
+## ターミナル4
+```
+source ~/humble_ws/install/local_setup.bash
+ros2 launch my_utility odom_tf2_broadcaster.launch.py
+```
+## ターミナル5
+```
+sudo chmod 777 /dev/ttyUSB2
+source ~/humble_ws/install/local_setup.bash
+ros2 launch ydlidar_ros2_driver ydlidar_launch.py 
+```
+## ターミナル5
+```
+source ~/humble_ws/install/local_setup.bash
+ros2 launch mecanum_navigation2 bringup_launch.py 
+```
+## ターミナル6
+```
+source ~/humble_ws/install/local_setup.bash
+ros2 run amir_operation camera_recogi
+```
+## ターミナル7
+```
+source ~/humble_ws/install/local_setup.bash
+ros2 launch yolov5_ros yolov5s_simple.launch.py
+```
+## ターミナル8 
+```
+source ~/camera_ws/install/setup.bash
+ros2 launch realsense2_camera rs_launchZ.py
+```
 
 
