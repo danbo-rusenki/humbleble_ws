@@ -22,9 +22,14 @@ moveit_simple_controller_manager:
       - Joint_4
       - Joint_5
   gripper_controller:
-    action_ns: gripper_cmd
-    type: GripperCommand
-    default: true
+    # type: FollowJointTrajectory
+    # action_ns: gripper_cmd
+    # type: GripperCommand
+    # default: true
+    # joints:
+    #   - Gripper
+    action_ns: follow_joint_trajectory  
+    type: FollowJointTrajectory
+    default: true                       
     joints:
       - Gripper
-    

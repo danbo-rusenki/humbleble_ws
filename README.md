@@ -34,7 +34,7 @@ colcon build --symlink-install
 # 実機を動かすコマンド(旧AMIR)
 ターミナル1~5はAMIRに搭載しているPCに入ってから実行する。IPアドレスは変更されることがよくあるので、適宜対応する。
 ```
-ssh rover@192.168.11.6 -X
+ssh rover@192.168.11.12 -X
 ```
 
 ## ターミナル1
@@ -53,38 +53,57 @@ ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB1 -v4
 ```
 ## ターミナル3
 ```
-ros2 launch mecanumrover3_bringup robot.launch.py
+cd humble_ws/
+ros2 run domain_bridge domain_bridge bridge_config.yaml
 ```
 ## ターミナル4
+```
+ros2 launch mecanumrover3_bringup robot.launch.py
+```
+## ターミナル5
 ```
 source ~/humble_ws/install/local_setup.bash
 ros2 launch my_utility odom_tf2_broadcaster.launch.py
 ```
-## ターミナル5
+## ターミナル6
 ```
 sudo chmod 777 /dev/ttyUSB2
 source ~/humble_ws/install/local_setup.bash
 ros2 launch ydlidar_ros2_driver ydlidar_launch.py 
 ```
-## ターミナル5
+## ターミナル7
 ```
 source ~/humble_ws/install/local_setup.bash
 ros2 launch mecanum_navigation2 bringup_launch.py 
 ```
-## ターミナル6
+## ターミナル8
+```
+source ~/humble_ws/install/local_setup.bash
+ros2 launch amir_driver amir_bringup.launch.py
+```
+
+## ターミナル
 ```
 source ~/humble_ws/install/local_setup.bash
 ros2 run amir_operation camera_recogi
 ```
-## ターミナル7
+## ターミナル
 ```
 source ~/humble_ws/install/local_setup.bash
 ros2 launch yolov5_ros yolov5s_simple.launch.py
 ```
-## ターミナル8 
+## ターミナル
 ```
 source ~/camera_ws/install/setup.bash
 ros2 launch realsense2_camera rs_launchZ.py
 ```
 
+
+# 自分のPCで
+
+## 初期位置移動
+```
+自分のworkspace を source ~/ ...
+ros2 run amir_operation initial_posi
+```
 

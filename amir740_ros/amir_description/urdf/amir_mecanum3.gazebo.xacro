@@ -43,10 +43,16 @@
               <parameters>$(find ${config_package})/${config_file_path}</parameters>
             </plugin>
         </gazebo> -->
-        <gazebo>
+        <!-- <gazebo>
           <plugin filename="gz_ros2_control-system"
                   name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <parameters>$(find gz_ros2_control_demos)/config/cart_controller.yaml</parameters>
+          </plugin>
+        </gazebo> -->
+        <gazebo>
+          <plugin filename="ign_ros2_control-system"
+                  name="ign_ros2_control::IgnitionROS2ControlPlugin">
+            <parameters>$(find amir_bringup)/config/controllers.yaml</parameters>
           </plugin>
         </gazebo>
 

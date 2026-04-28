@@ -23,8 +23,8 @@ class CalculateObj : public BT::SyncActionNode
 public:
   CalculateObj(const std::string & name, const BT::NodeConfiguration & config)
   : BT::SyncActionNode(name, config),
-    // obj_topic_("/amir1/object_position")
-    obj_topic_("/amir1/score_position2")
+    obj_topic_("/amir1/object_position")
+    // obj_topic_("/amir1/score_position2")
   {
     node_ = BT::TreeNode::config().blackboard->get<rclcpp::Node::SharedPtr>("node");
     server_timeout_ = BT::TreeNode::config().blackboard->template get<std::chrono::milliseconds>("server_timeout");
@@ -36,8 +36,8 @@ public:
   {
     return {
  
-      // BT::InputPort<std::string>("obj_topic_",std::string("/amir1/object_position")),
-      BT::InputPort<std::string>("obj_topic_",std::string("/amir1/score_position2")),
+      BT::InputPort<std::string>("obj_topic_",std::string("/amir1/object_position")),
+      // BT::InputPort<std::string>("obj_topic_",std::string("/amir1/score_position2")),
       // BT::OutputPort<double>("btl_x", ""),
       // BT::OutputPort<double>("btl_y", ""
       BT::OutputPort<geometry_msgs::msg::PoseStamped>("pose_obj", "")
@@ -47,15 +47,15 @@ public:
   BT::NodeStatus tick() override
   {
 
-    // while (!rclcpp::wait_for_message(obj_posi_,node_,"/amir1/object_position",server_timeout_))
-    // {
-    //   RCLCPP_DEBUG(node_ ->get_logger(),"timeout /btl_poses");
-    // }
-
-    while (!rclcpp::wait_for_message(obj_posi_,node_,"/amir1/score_position2",server_timeout_))
+    while (!rclcpp::wait_for_message(obj_posi_,node_,"/amir1/object_position",server_timeout_))
     {
       RCLCPP_DEBUG(node_ ->get_logger(),"timeout /btl_poses");
     }
+
+    // while (!rclcpp::wait_for_message(obj_posi_,node_,"/amir1/score_position2",server_timeout_))
+    // {
+    //   RCLCPP_DEBUG(node_ ->get_logger(),"timeout /btl_poses");
+    // }
 
 
 

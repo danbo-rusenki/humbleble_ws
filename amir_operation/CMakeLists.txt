@@ -30,6 +30,8 @@ find_package(OpenCV REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(PCL REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
+find_package(control_msgs REQUIRED)      
+find_package(trajectory_msgs REQUIRED)
 
 include_directories(
   include
@@ -94,6 +96,10 @@ add_executable(pick_place_hum_2
   src/pick_place_humble_2.cpp
 )
 
+add_executable(pick_place_hum_3
+  src/pick_place_humble_3.cpp
+)
+
 
 set(dependencies
   rclcpp 
@@ -118,6 +124,8 @@ set(dependencies
   OpenCV
   image_transport
   moveit_ros_planning_interface
+  trajectory_msgs
+  control_msgs
 )
 
 ament_target_dependencies(initial_posi ${dependencies})
@@ -138,7 +146,7 @@ ament_target_dependencies(search_amir ${dependencies})
 #ament_target_dependencies(amir_motion ${dependencies})
 ament_target_dependencies(pick_place_hum ${dependencies})
 ament_target_dependencies(pick_place_hum_2 ${dependencies})
-
+ament_target_dependencies(pick_place_hum_3 ${dependencies})
 
 
 install(TARGETS
@@ -158,6 +166,7 @@ install(TARGETS
   #amir_motion
   pick_place_hum
   pick_place_hum_2
+  pick_place_hum_3
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch

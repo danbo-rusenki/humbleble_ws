@@ -19,7 +19,7 @@
         <state_interface name="effort"/>
       </joint>
 
-      <!-- <joint name="${name_joint_2}">
+      <joint name="${name_joint_2}">
         <command_interface name="position">
           <param name="min">${joint_2_lower_limit}</param>
           <param name="max">${joint_2_upper_limit}</param>
@@ -95,7 +95,7 @@
       <state_interface name="position"/>
       <state_interface name="velocity"/>
       <state_interface name="effort"/>
-    </joint> -->
+    </joint>
 
     </ros2_control>
   </xacro:macro>

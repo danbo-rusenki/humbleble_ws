@@ -46,17 +46,17 @@
     </SequenceStar>
   </BehaviorTree> -->
 
-<BehaviorTree ID="MainTree">
+<!-- <BehaviorTree ID="MainTree">
   <SequenceStar name="root">
     <CalculateGoal input_position="0.0;0.0" output_msg="{goal}"/>
     <ReactiveFallback name="test">
       <GoalReached global_frame="map" robot_base_frame="base_link" goal="{goal}"/>
-      <!-- <SubTree ID="Navigation"
+      <SubTree ID="Navigation"
         node="{node}"
         goal="{goal}"
         bt_loop_duration="{bt_loop_duration}"
         server_timeout="{server_timeout}"
-        wait_for_service_timeout="{wait_for_service_timeout}"/> -->
+        wait_for_service_timeout="{wait_for_service_timeout}"/>
       <SubTreePlus ID="Navigation" __autoremap="true"
             node="{node}" goal="{goal}"
             bt_loop_duration="{bt_loop_duration}"
@@ -66,7 +66,7 @@
 
     <TaskClear/>
   </SequenceStar>
-</BehaviorTree>
+</BehaviorTree> -->
 
 
 
@@ -111,29 +111,30 @@
 
   <!-- <BehaviorTree ID="MainTree">
     <SequenceStar name="root">
-        <PickAmir action_name="Pick" server_timeout="{server_timeout}"/>
-        <MoveMeca action_name="amir/move_meca" posi_x = "1.0" posi_y = "1.0" server_timeout="{server_timeout}"/>
+        <SearchBtl posi_x = "posi_x" posi_y = "posi_y"/>
+        <CalculateObj  pose_obj="{pose_obj}"/>
+        <PickAmir action_name="pick" x = "{btl_x}" y = "{btl_y}" z = "0.42" server_timeout="{server_timeout}"/>
     </SequenceStar>
   </BehaviorTree> -->
 
 
 
- <!-- <BehaviorTree ID="MainTree">
+ <BehaviorTree ID="MainTree">
     <SequenceStar name="root">
       <CalculateObj  pose_obj="{pose_obj}"/>
       <PickAmir action_name="pick" pose_obj="{pose_obj}" server_timeout="{server_timeout}"/>
       <CalculatePlacePosi x = "0.01" y = "-0.40" z = "0.39" pose_obj="{pose_obj}"/>
       <PlaceAmir action_name="place" pose_obj="{pose_obj}" server_timeout="{server_timeout}"/>
-      <SearchAmir action_name ="search" server_timeout="{server_timeout}"/>
-      <Delay delay_msec="2000">
+      <!-- <SearchAmir action_name ="search" server_timeout="{server_timeout}"/> -->
+      <!-- <Delay delay_msec="2000">
         <CalculateObj  pose_obj="{pose_obj}"/>
       </Delay>  
       <PickAmir action_name="pick" pose_obj="{pose_obj}" server_timeout="{server_timeout}"/>
       <CalculatePlacePosi x = "0.01" y = "-0.40" z = "0.39" pose_obj="{pose_obj}"/>
       <PlaceAmir action_name="place" pose_obj="{pose_obj}" server_timeout="{server_timeout}"/>
-      <SearchAmir action_name ="search" server_timeout="{server_timeout}"/>
+      <SearchAmir action_name ="search" server_timeout="{server_timeout}"/> -->
     </SequenceStar>
-  </BehaviorTree> -->
+  </BehaviorTree>
 
 
   <!-- <BehaviorTree ID="MainTree">
@@ -179,9 +180,10 @@
         <!-- <Sequence>
           <CheckOdom/>
           <PlaceAmir action_name="place" x = "0.45" y = "-0.40" z = "0.40" server_timeout="{server_timeout}"/>        
-        </Sequence>
-    </SequenceStar>
+        </Sequence> -->
+    <!-- </SequenceStar>
   </BehaviorTree> -->
+
 
 
   <!-- <BehaviorTree ID="MainTree">
