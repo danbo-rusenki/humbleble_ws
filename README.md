@@ -107,3 +107,8 @@ ros2 launch realsense2_camera rs_launchZ.py
 ros2 run amir_operation initial_posi
 ```
 
+## カメラ映像を自分のpcに表示させる
+```
+自分のworkspace を source ~/ ...
+ros2 run amir_navigation image_show 
+```
