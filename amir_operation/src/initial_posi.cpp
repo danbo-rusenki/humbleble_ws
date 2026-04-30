@@ -33,7 +33,7 @@ private:
 
     trajectory_msgs::msg::JointTrajectoryPoint arm_point;
     arm_point.positions  = {0.00, 2.3, -2.3, -0.50, 0};
-    arm_point.velocities = {0.1, 0.1, 0.1, 0.1, 0.1};
+    arm_point.velocities = {0.0, 0.0, 0.0, 0.0, 0.0};
     arm_point.time_from_start.sec     = 5;
     arm_point.time_from_start.nanosec = 0;
     arm_msg.points.push_back(arm_point);
