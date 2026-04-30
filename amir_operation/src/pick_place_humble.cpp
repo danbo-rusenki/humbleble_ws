@@ -144,7 +144,7 @@ void moveTo(MoveGroupInterface &group,
 void addCollisionObjects(PlanningSceneInterface &scene) {
   std::vector<moveit_msgs::msg::CollisionObject> objs(1);
   objs[0].id              = "table2";
-  objs[0].header.frame_id = "link0_1";
+  objs[0].header.frame_id = "base_link";
   shape_msgs::msg::SolidPrimitive prim;
   prim.type = prim.BOX;
   prim.dimensions.resize(3);
@@ -178,6 +178,8 @@ int main(int argc, char **argv) {
   MoveGroupInterface arm(node, "arm");
   PlanningSceneInterface planning_scene_interface;
 
+  arm.setPoseReferenceFrame("base_footprint");
+
   arm.setPlanningTime(30.0);
 
   rclcpp::sleep_for(1s);
@@ -191,9 +193,9 @@ int main(int argc, char **argv) {
   //   OBJECT_DIMENSION[2] + 0.05 + LINK0_HEIGHT,
   //   -90.0, 0.0, -90.0, 0.6);
 
-  
-  moveTo(arm, 0.4, 0.4, 0.2,
-    -90.0, 0.0, -90.0, 0.6);
+  controlGripper(node, gripper_client, -1.047); 
+
+  moveTo(arm, 0.4, 0.4, 0.3, -90.0, 0.0, -90.0, 0.6);
 
   // RCLCPP_INFO(node->get_logger(), "Open gripper");
   // controlGripper(node, gripper_client, -1.047);   // 全開
