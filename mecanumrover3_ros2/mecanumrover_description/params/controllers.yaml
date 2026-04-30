@@ -1,0 +1,42 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    use_sim_time: true
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    wheel_velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    suspension_effort_controller:
+      type: effort_controllers/JointGroupEffortController
+
+
+wheel_velocity_controller:
+  ros__parameters:
+    joints:
+      - front_left_joint
+      - front_right_joint
+      - back_left_joint
+      - back_right_joint
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - velocity
+      - position
+
+
+suspension_effort_controller:
+  ros__parameters:
+    joints:
+      - front_left_suspension_joint
+      - front_right_suspension_joint
+      - back_left_suspension_joint
+      - back_right_suspension_joint
+    command_interfaces:
+      - effort
+    state_interfaces:
+      - position
+      - velocity
+
