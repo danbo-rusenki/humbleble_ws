@@ -40,6 +40,9 @@ include_directories(
 add_executable(initial_posi 
   src/initial_posi.cpp
 )
+add_executable(initial_posi_gz 
+  src/initial_posi_gz.cpp
+)
 add_executable(pick 
   src/pick.cpp
 )
@@ -147,10 +150,12 @@ ament_target_dependencies(search_amir ${dependencies})
 ament_target_dependencies(pick_place_hum ${dependencies})
 ament_target_dependencies(pick_place_hum_2 ${dependencies})
 ament_target_dependencies(pick_place_hum_3 ${dependencies})
+ament_target_dependencies(initial_posi_gz ${dependencies})
 
 
 install(TARGETS
   initial_posi
+  initial_posi_gz
   pick
   place
   search_obj

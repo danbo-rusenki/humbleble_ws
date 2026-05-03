@@ -4,8 +4,8 @@
 <xacro:include filename="$(find amir_description)/urdf/materials.xacro" />
 <xacro:include filename="$(find amir_description)/urdf/amir.trans" />
 <!-- <xacro:include filename="$(find amir_description)/urdf/amir.gazebo" />新しいros2用のやつを作る -->
-<xacro:include filename="$(find amir_description)/urdf/amir_mecanum3.gazebo.xacro" />
-<xacro:include filename="$(find amir_description)/urdf/amir_mecanum3.gazebo_ros2_control.xacro" />
+<!-- <xacro:include filename="$(find amir_description)/urdf/amir_mecanum3.gazebo.xacro" />
+<xacro:include filename="$(find amir_description)/urdf/amir_mecanum3.gazebo_ros2_control.xacro" /> -->
 
 <link name="link0_1">
   <inertial>
@@ -449,49 +449,54 @@ so we need to left one on the joints open -->
   <limit lower="-1.047198" upper="0.261799" effort="0.4" velocity="2"/>
 </joint>
 
-<joint name="left_inner_back_joint" type="continuous">
+<joint name="left_inner_back_joint" type="revolute">
   <origin xyz="-0.017633 0.020522 0.0" rpy="0 0 0"/>
   <parent link="gripper_base_1"/>
   <child link="inner_link_left_1"/>
   <axis xyz="0.0 0.0 -1.0"/>
-  <!-- <limit lower="-1.047198" upper="0.261799" effort="10" velocity="4"/> -->
+  <limit lower="-1.047198" upper="0.261799" effort="0.4" velocity="2"/>
+  <dynamics damping="0.1" friction="0.05"/>
   <mimic joint="Gripper" multiplier="1" offset="0" />
 </joint>
 
-<joint name="right_outer_back_joint" type="continuous">
+<joint name="right_outer_back_joint" type="revolute">
   <origin xyz="0.038367 0.020522 0.0" rpy="0 0 0"/>
   <parent link="gripper_base_1"/>
   <child link="outer_link_right_1"/>
   <axis xyz="0.0 0.0 1.0"/>
-  <!-- <limit lower="-1.047198" upper="0.261799" effort="10" velocity="4"/> -->
+  <limit lower="-1.047198" upper="0.261799" effort="0.4" velocity="2"/>
+  <dynamics damping="0.1" friction="0.05"/>
   <mimic joint="Gripper" multiplier="1" offset="0" />
 </joint>
 
-<joint name="left_outer_back_joint" type="continuous">
+<joint name="left_outer_back_joint" type="revolute">
   <origin xyz="-0.037633 0.020522 0.0" rpy="0 0 0"/>
   <parent link="gripper_base_1"/>
   <child link="outer_link_left_1"/>
   <axis xyz="0.0 0.0 -1.0"/>
-  <!-- <limit lower="-1.047198" upper="0.261799" effort="10" velocity="4"/> -->
+  <limit lower="-1.047198" upper="0.261799" effort="0.4" velocity="2"/>
+  <dynamics damping="0.1" friction="0.05"/>
   <mimic joint="Gripper" multiplier="1" offset="0" />
 </joint>
 
 <!-- use this when using inner joint -->
-<joint name="right_inner_front_joint" type="continuous">
+<joint name="right_inner_front_joint" type="revolute">
   <origin xyz="0.0 0.04 0.0" rpy="0 0 0"/>
   <parent link="inner_link_right_1"/>
   <child link="finger_right_1"/>
   <axis xyz="0.0 0.0 -1.0"/>
-  <!-- <limit lower="-1.047198" upper="0.261799" effort="10" velocity="4"/> -->
+  <limit lower="-1.047198" upper="0.261799" effort="0.4" velocity="2"/>
+  <dynamics damping="0.1" friction="0.05"/>
   <mimic joint="Gripper" multiplier="1" offset="0" />
 </joint>
 
-<joint name="left_inner_front_joint" type="continuous">
+<joint name="left_inner_front_joint" type="revolute">
   <origin xyz="-0.0 0.04 0.0" rpy="0 0 0"/>
   <parent link="inner_link_left_1"/>
   <child link="finger_left_1"/>
   <axis xyz="0.0 0.0 1.0"/>
-  <!-- <limit lower="-1.047198" upper="0.261799" effort="10" velocity="4"/> -->
+  <limit lower="-1.047198" upper="0.261799" effort="0.4" velocity="2"/>
+  <dynamics damping="0.1" friction="0.05"/>
   <mimic joint="Gripper" multiplier="1" offset="0" />
 </joint>
 <!-- end of inner joint -->

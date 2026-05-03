@@ -4,7 +4,6 @@
   <xacro:property name="body_color"  value="Gazebo/Silver"/>
   <xacro:property name="wheel_color" value="Gazebo/DarkGrey"/>
 
-
   <!-- Gazebo ros2_control plugin      -->
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">

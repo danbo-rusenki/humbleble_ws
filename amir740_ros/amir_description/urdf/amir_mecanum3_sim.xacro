@@ -1,0 +1,182 @@
+<?xml version="1.0" ?>
+<robot name="amir_mecanum3" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- メカナムローバー URDF
+       mecanum3.gazebo (libgazebo_ros2_control.so) と
+       mecanum3_ros2_control.xacro (MecanumSystem) を含む -->
+  <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3.xacro"/>
+
+  <!-- AMIR アーム リンク/ジョイント (gazebo インクルードはコメントアウト済み) -->
+  <xacro:include filename="$(find amir_description)/urdf/amir_for_rover.xacro"/>
+
+  <!-- ローバーとアームの固定接続 -->
+  <joint name="base_fixed" type="fixed">
+    <origin xyz="0.0 0.0 0.413" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="link0_1"/>
+  </joint>
+
+  <!-- AMIR アーム Gazebo シミュレーション用 ros2_control
+       libgazebo_ros2_control.so は URDF 内の全 <ros2_control> タグを読み込み
+       GazeboSystem としてシミュレーションする -->
+  <ros2_control name="AmirGazeboSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <joint name="Joint_1">
+      <command_interface name="position">
+        <param name="min">-2.96706</param>
+        <param name="max">2.96706</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="Joint_2">
+      <command_interface name="position">
+        <param name="min">0.0</param>
+        <param name="max">2.356194</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="Joint_3">
+      <command_interface name="position">
+        <param name="min">-2.792527</param>
+        <param name="max">0.0</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="Joint_4">
+      <command_interface name="position">
+        <param name="min">-2.094395</param>
+        <param name="max">1.308997</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="Joint_5">
+      <command_interface name="position">
+        <param name="min">-2.75762</param>
+        <param name="max">2.75762</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="Gripper">
+      <command_interface name="position">
+        <param name="min">-1.047198</param>
+        <param name="max">0.261799</param>
+      </command_interface>
+      <state_interface name="position">
+        <param name="initial_value">0.0</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="left_inner_back_joint">
+      <param name="mimic">Gripper</param>
+      <param name="multiplier">1</param>
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="right_outer_back_joint">
+      <param name="mimic">Gripper</param>
+      <param name="multiplier">1</param>
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="left_outer_back_joint">
+      <param name="mimic">Gripper</param>
+      <param name="multiplier">1</param>
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="right_inner_front_joint">
+      <param name="mimic">Gripper</param>
+      <param name="multiplier">1</param>
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="left_inner_front_joint">
+      <param name="mimic">Gripper</param>
+      <param name="multiplier">1</param>
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- AMIR アームリンクの Gazebo マテリアル設定 -->
+  <gazebo reference="link0_1">
+    <material>Gazebo/Silver</material>
+    <mu1>1.4</mu1><mu2>1.4</mu2>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+  <gazebo reference="link1_1">
+    <material>Gazebo/Silver</material>
+    <mu1>1.4</mu1><mu2>1.4</mu2>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+  <gazebo reference="link2_1">
+    <material>Gazebo/Silver</material>
+    <mu1>1.4</mu1><mu2>1.4</mu2>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+  <gazebo reference="link3_1">
+    <material>Gazebo/Silver</material>
+    <mu1>1.4</mu1><mu2>1.4</mu2>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+  <gazebo reference="link4_1">
+    <material>Gazebo/Silver</material>
+    <mu1>1.4</mu1><mu2>1.4</mu2>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+  <gazebo reference="gripper_base_1">
+    <material>Gazebo/Silver</material>
+    <mu1>1.4</mu1><mu2>1.4</mu2>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+  <gazebo reference="inner_link_left_1">
+    <material>Gazebo/Silver</material>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+  <gazebo reference="inner_link_right_1">
+    <material>Gazebo/Silver</material>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+  <gazebo reference="outer_link_left_1">
+    <material>Gazebo/Silver</material>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+  <gazebo reference="outer_link_right_1">
+    <material>Gazebo/Silver</material>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+  <gazebo reference="finger_left_1">
+    <material>Gazebo/Silver</material>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+  <gazebo reference="finger_right_1">
+    <material>Gazebo/Silver</material>
+    <selfCollide>false</selfCollide>
+  </gazebo>
+  <gazebo reference="tcp_link">
+    <material>Gazebo/RedTransparent</material>
+  </gazebo>
+
+</robot>
