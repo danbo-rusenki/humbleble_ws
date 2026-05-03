@@ -23,6 +23,12 @@ rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 cd ~/ros2_humble_ws
 colcon build --symlink-install
 ```
+3. pythonファイルに実行権限を付与、ファイルのあるディレクトリに移動するか、ファイルの場所を指定してください。
+```bash
+chmod +x rover_twist_relay.py
+
+chmod +x joint_state_filter.py
+```
 
 ## コマンド
 
