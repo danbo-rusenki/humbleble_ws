@@ -195,9 +195,19 @@ int main(int argc, char **argv) {
 
   controlGripper(node, gripper_client, -1.047); 
 
-  moveTo(arm, 0.4, 0.4, 0.3, -90.0, 0.0, -90.0, 0.6);
+  moveTo(arm, 0.4, 0.4, 0.3, -90.0, 0.0, -90.0, 1.0);
 
-  moveTo(arm, 0.4, -0.4, 0.3, -90.0, 0.0, 90.0, 0.6);
+  // moveTo(arm, 0.4, -0.4, 0.3, -90.0, 0.0, 90.0, 0.6);
+
+  moveTo(arm, 0.4, 0.0, 0.4 , 0.0, 0.0, 0.0, 1.0);
+
+  // moveTo(arm, 0.4, -0.4, 0.3, -90.0, -90.0, 90.0, 0.6);
+
+
+  
+  // moveTo(arm, 0.4, 0.0, 0.3, 0.0, 0.0, 90.0, 0.6);
+
+
 
   // RCLCPP_INFO(node->get_logger(), "Open gripper");
   // controlGripper(node, gripper_client, -1.047);   // 全開
