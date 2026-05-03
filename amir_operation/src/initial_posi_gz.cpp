@@ -50,7 +50,7 @@ private:
     }
 
     auto goal = GripperCommand::Goal();
-    goal.command.position   = -0.2;
+    goal.command.position   = -0.8;
     goal.command.max_effort = 10.0;
 
     gripper_client_->async_send_goal(goal);
