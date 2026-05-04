@@ -29,7 +29,7 @@
         xyz="${0.0666389*cos(radians(dir))} ${0.0666389*sin(radians(dir))} 0"
         rpy="${pi/4*rot} 0 ${radians(dir)}"/>
       <axis xyz="0 0 1"/>
-      <dynamics damping="0.001" friction="0.0"/>
+      <dynamics damping="0.001" friction="0.001"/>
     </joint>
     <link name="${prefix}_link">
       <visual>
@@ -90,7 +90,7 @@
   <link name="base_link">
     <inertial>
       <origin xyz="0.000129 -0.001817 0.110883"/>
-      <mass value="14"/>
+      <mass value="40"/>
       <inertia ixx="1.346868e-01" iyy="4.468661e-02" izz="1.499091e-01" ixy="3.076527e-04" ixz="-2.931603e-05" iyz="2.763693e-05"/>
     </inertial>
     <visual>
@@ -207,7 +207,7 @@
       <!-- effort limit is required: GazeboSystem uses it as ODE fmax.
            Without it fmax=0 and the velocity controller applies zero torque,
            letting reaction forces from the arm push the base freely. -->
-      <limit effort="50.0" velocity="20.0"/>
+      <limit effort="1500.0" velocity="20.0"/>
       <dynamics damping="1.0" friction="0.0"/>
     </joint>
   </xacro:macro>

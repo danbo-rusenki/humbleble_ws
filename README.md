@@ -45,3 +45,17 @@ ros2 launch amir_gazebo gazebo_bringup.launch.py
 ros2 run amir_operation initial_posi_gz
 ```
 
+3. moveit2 
+```bash
+ros2 launch amir_moveit_config moveit_gazebo.launch.py 
+```
+
+4. moveit2に指示送る
+```bash
+ros2 run amir_operation pick_place_hum
+```
+
+# 問題点
+メカナムホイールであることが原因で、アームを動かすと、メカナムが動いてしまう
+メカナムの重さを重くしたり、摩擦係数を少し変更した
+まだちょっと動いちゃう

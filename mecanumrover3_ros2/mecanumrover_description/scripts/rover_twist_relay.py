@@ -125,7 +125,7 @@ class RoverTwistRelay(Node):
         v_br = (vx - vy + wz * self.k_geom) / self.r
 
         msg = Float64MultiArray()
-        msg.data = [-v_fl, -v_fr, -v_bl, -v_br]
+        msg.data = [v_fl, v_fr, v_bl, v_br]
         return msg
 
     # ------------------------------------------------------------
