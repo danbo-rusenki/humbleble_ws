@@ -204,6 +204,11 @@
       <child link="${child}"/>
       <origin xyz="${xyz}" rpy="${rpy}"/>
       <axis xyz="0 0 ${axis_z}"/>
+      <!-- effort limit is required: GazeboSystem uses it as ODE fmax.
+           Without it fmax=0 and the velocity controller applies zero torque,
+           letting reaction forces from the arm push the base freely. -->
+      <limit effort="50.0" velocity="20.0"/>
+      <dynamics damping="1.0" friction="0.0"/>
     </joint>
   </xacro:macro>
 

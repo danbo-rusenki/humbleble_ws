@@ -27,7 +27,7 @@
     <gazebo reference="${joint}">
       <springReference>0.0</springReference>
       <springStiffness>266</springStiffness>
-      <damping>8</damping>
+      <damping>40</damping>
     </gazebo>
   </xacro:macro>
 

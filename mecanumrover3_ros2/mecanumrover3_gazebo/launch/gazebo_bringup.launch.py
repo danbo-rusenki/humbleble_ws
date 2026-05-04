@@ -172,7 +172,7 @@ def generate_launch_description():
             "ros2", "run", "gazebo_ros", "spawn_entity.py",
             "-entity", rover,
             "-file", urdf_path,
-            "-z", "0.03",
+            "-z", "0.002",
         ],
         output="screen",
     )

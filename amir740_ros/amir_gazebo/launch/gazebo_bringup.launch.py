@@ -157,7 +157,7 @@ def generate_launch_description():
             "ros2", "run", "gazebo_ros", "spawn_entity.py",
             "-entity", "amir_mecanum3",
             "-file", urdf_path,
-            "-z", "0.03",
+            "-z", "0.003",
         ],
         output="screen",
     )
