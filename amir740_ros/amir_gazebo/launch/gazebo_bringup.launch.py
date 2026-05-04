@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -77,7 +78,13 @@ def _create_urdf_and_rsp(context, *args, **kwargs):
     os.close(fd_urdf)
     subprocess.run([xacro_exe, xacro_file, "-o", urdf_path], check=True)
     with open(urdf_path) as f:
-        urdf_content = f.read()
+        raw = f.read()
+    # gazebo_ros2_control passes robot_description as --param key:=value to rcl,
+    # which parses the value as a YAML plain scalar. Two things break YAML:
+    #   1. raw newlines (terminate the scalar)
+    #   2. ': ' (colon-space) patterns inside XML comments (treated as mapping)
+    # Stripping XML comments and collapsing newlines makes the value safely parseable.
+    urdf_content = re.sub(r'<!--.*?-->', '', raw, flags=re.DOTALL).replace('\n', ' ')
 
     rsp = Node(
         package="robot_state_publisher",

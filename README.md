@@ -20,6 +20,9 @@ rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
 2. ワークスペースをビルド
 ```bash
+
+sudo apt update && sudo apt install -y ros-humble-gazebo-ros2-control ros-humble-gazebo-ros-pkgs ros-humble-controller-manager ros-humble-joint-state-broadcaster ros-humble-velocity-controllers ros-humble-effort-controllers ros-humble-joint-trajectory-controller ros-humble-position-controllers ros-humble-robot-state-publisher ros-humble-xacro
+
 cd ~/ros2_humble_ws
 colcon build --symlink-install
 ```
