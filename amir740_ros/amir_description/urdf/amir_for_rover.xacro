@@ -402,7 +402,8 @@ so we need to left one on the joints open -->
   <child link="link1_1"/>
   <axis xyz="0.0 0.0 1.0"/>
   <limit upper="2.96706" lower="-2.96706" effort="33" velocity="1"/>
-  <dynamics damping="0.6" friction="0.3" />
+  <!-- Increased damping to reduce arm reaction forces transmitted to the mobile base -->
+  <dynamics damping="3.0" friction="0.3" />
 </joint>
 
 <joint name="Joint_2" type="revolute">
@@ -411,7 +412,7 @@ so we need to left one on the joints open -->
   <child link="link2_1"/>
   <axis xyz="1.0 0.0 0.0"/>
   <limit upper="2.356194" lower="0" effort="22" velocity="1"/>
-  <dynamics damping="0.6" friction="0.3" />
+  <dynamics damping="3.0" friction="0.3" />
 </joint>
 
 <joint name="Joint_3" type="revolute">
@@ -420,7 +421,7 @@ so we need to left one on the joints open -->
   <child link="link3_1"/>
   <axis xyz="1.0 0.0 0.0"/>
   <limit upper="0.0" lower="-2.792527" effort="26" velocity="1"/>
-  <dynamics damping="0.6" friction="0.3" />
+  <dynamics damping="3.0" friction="0.3" />
 </joint>
 
 <joint name="Joint_4" type="revolute">
@@ -429,7 +430,7 @@ so we need to left one on the joints open -->
   <child link="link4_1"/>
   <axis xyz="1.0 0.0 0.0"/>
   <limit lower="-2.094395" upper="1.308997" effort="1.3" velocity="1"/>
-  <dynamics damping="0.3" friction="0.1" />
+  <dynamics damping="1.5" friction="0.1" />
 </joint>
 
 <joint name="Joint_5" type="revolute">
@@ -438,7 +439,7 @@ so we need to left one on the joints open -->
   <child link="gripper_base_1"/>
   <axis xyz="0.0 1.0 0.0"/>
   <limit lower="-2.75762" upper="2.75762" effort="0.4" velocity="2"/>
-  <dynamics damping="0.3" friction="0.1" />
+  <dynamics damping="1.5" friction="0.1" />
 </joint>
 
 <joint name="Gripper" type="revolute">

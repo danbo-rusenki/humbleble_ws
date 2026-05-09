@@ -7,90 +7,30 @@
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
     </hardware>
 
-    <!-- Wheel joints (velocity)
-         min/max are required: GazeboSystem reads command_interface.max as fmax for the ODE
-         joint motor. Without them fmax=NaN→0 and the motor applies zero torque. -->
+    <!-- Wheel joints: STATE interfaces only (no command interface).
+         libgazebo_ros_diff_drive.so controls these joints directly via the Gazebo
+         physics API. If a velocity command_interface were present here, GazeboSystem
+         would initialise it to 0 and fight the diff_drive plugin. -->
     <joint name="front_left_joint">
-      <command_interface name="velocity">
-        <param name="min">-20.0</param>
-        <param name="max">20.0</param>
-      </command_interface>
-      <state_interface name="velocity"/>
       <state_interface name="position"/>
+      <state_interface name="velocity"/>
     </joint>
 
     <joint name="front_right_joint">
-      <command_interface name="velocity">
-        <param name="min">-20.0</param>
-        <param name="max">20.0</param>
-      </command_interface>
-      <state_interface name="velocity"/>
       <state_interface name="position"/>
+      <state_interface name="velocity"/>
     </joint>
 
     <joint name="back_left_joint">
-      <command_interface name="velocity">
-        <param name="min">-20.0</param>
-        <param name="max">20.0</param>
-      </command_interface>
-      <state_interface name="velocity"/>
       <state_interface name="position"/>
+      <state_interface name="velocity"/>
     </joint>
 
     <joint name="back_right_joint">
-      <command_interface name="velocity">
-        <param name="min">-20.0</param>
-        <param name="max">20.0</param>
-      </command_interface>
-      <state_interface name="velocity"/>
-      <state_interface name="position"/>
-    </joint>
-
-
-    <!-- Gazebo internal spring/damping            -->
-    <joint name="front_left_suspension_joint">
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
-
-    <joint name="front_right_suspension_joint">
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-
-    <joint name="back_left_suspension_joint">
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-
-    <joint name="back_right_suspension_joint">
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    
-
-    <!-- Barrel joints (TF only, no control)       -->
-    <xacro:macro name="add_barrel_joints_recursive" params="prefix idx max_idx">
-      <joint name="${prefix}_barrel_${idx}_joint">
-        <state_interface name="position"/>
-      </joint>
-
-      <xacro:if value="${idx &lt; max_idx}">
-        <xacro:add_barrel_joints_recursive prefix="${prefix}" idx="${idx + 1}" max_idx="${max_idx}"/>
-      </xacro:if>
-    </xacro:macro>
-
-    <xacro:macro name="add_barrel_joints" params="prefix">
-      <xacro:add_barrel_joints_recursive prefix="${prefix}" idx="0" max_idx="14"/>
-    </xacro:macro>
-
-    <xacro:add_barrel_joints prefix="front_left"/>
-    <xacro:add_barrel_joints prefix="front_right"/>
-    <xacro:add_barrel_joints prefix="back_left"/>
-    <xacro:add_barrel_joints prefix="back_right"/>
 
   </ros2_control>
 
-
 </robot>
-

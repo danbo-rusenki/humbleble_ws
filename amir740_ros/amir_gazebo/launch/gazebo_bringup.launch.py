@@ -157,28 +157,18 @@ def generate_launch_description():
             "ros2", "run", "gazebo_ros", "spawn_entity.py",
             "-entity", "amir_mecanum3",
             "-file", urdf_path,
-            "-z", "0.003",
+            "-z", "0.03",
         ],
         output="screen",
     )
 
     # コントローラーは controller_manager のシングルスレッドサービスを
     # 同時に叩くとタイムアウト/二重ロードが発生するため順番に起動する
-    # jsb → wheel → arm → gripper の順に OnProcessExit で連鎖させる
+    # jsb → arm → gripper の順に OnProcessExit で連鎖させる
     jsb = ExecuteProcess(
         cmd=[
             "ros2", "run", "controller_manager", "spawner",
             "joint_state_broadcaster",
-            "--controller-manager-timeout", "30",
-            "--service-call-timeout", "30.0",
-        ],
-        output="screen",
-    )
-
-    wheel = ExecuteProcess(
-        cmd=[
-            "ros2", "run", "controller_manager", "spawner",
-            "wheel_velocity_controller",
             "--controller-manager-timeout", "30",
             "--service-call-timeout", "30.0",
         ],
@@ -209,39 +199,11 @@ def generate_launch_description():
         output="screen",
     )
 
-    wheel_after_jsb = RegisterEventHandler(
-        OnProcessExit(target_action=jsb, on_exit=[wheel])
-    )
-    arm_after_wheel = RegisterEventHandler(
-        OnProcessExit(target_action=wheel, on_exit=[arm])
+    arm_after_jsb = RegisterEventHandler(
+        OnProcessExit(target_action=jsb, on_exit=[arm])
     )
     gripper_after_arm = RegisterEventHandler(
         OnProcessExit(target_action=arm, on_exit=[gripper])
-    )
-
-    # メカナムローバー twist リレーノード
-    rover_twist_relay = Node(
-        package="mecanumrover_description",
-        executable="rover_twist_relay.py",
-        name="rover_twist_relay",
-        output="screen",
-        parameters=[
-            os.path.join(mecanum_description_dir, "scripts", "rover_twist_relay.yaml"),
-            {"rover": "mecanum3", "use_sim_time": True},
-        ],
-    )
-
-    # Gazebo odometry → /odom ブリッジ
-    gazebo_odom_bridge = Node(
-        package="mecanumrover3_bringup",
-        executable="gazebo_odom_bridge",
-        name="gazebo_odom_bridge",
-        parameters=[
-            {"model_name": "amir_mecanum3"},
-            {"base_link_name": "base_footprint"},
-            {"use_sim_time": True},
-        ],
-        output="screen",
     )
 
     on_shutdown_cleanup = RegisterEventHandler(
@@ -257,10 +219,7 @@ def generate_launch_description():
         gazebo,
         spawn,
         jsb,
-        wheel_after_jsb,
-        arm_after_wheel,
+        arm_after_jsb,
         gripper_after_arm,
-        rover_twist_relay,
-        gazebo_odom_bridge,
         on_shutdown_cleanup,
     ])

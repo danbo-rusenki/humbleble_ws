@@ -113,19 +113,18 @@ class RoverTwistRelay(Node):
         self.k_geom = self.L + self.W
 
 
-    # Convert Twist to wheel velocities
+    # Convert Twist to wheel velocities (skid-steer / 4-wheel differential drive)
+    # vy (lateral) is ignored: cylinder wheels cannot strafe.
+    # Left wheels share one speed, right wheels share another.
     def twist_to_wheels(self, twist):
         vx = twist.linear.x
-        vy = twist.linear.y
         wz = twist.angular.z
 
-        v_fl = (vx - vy - wz * self.k_geom) / self.r
-        v_fr = (vx + vy + wz * self.k_geom) / self.r
-        v_bl = (vx + vy - wz * self.k_geom) / self.r
-        v_br = (vx - vy + wz * self.k_geom) / self.r
+        v_l = (vx - wz * self.W / 2.0) / self.r
+        v_r = (vx + wz * self.W / 2.0) / self.r
 
         msg = Float64MultiArray()
-        msg.data = [v_fl, v_fr, v_bl, v_br]
+        msg.data = [v_l, v_r, v_l, v_r]  # [front_left, front_right, back_left, back_right]
         return msg
 
     # ------------------------------------------------------------

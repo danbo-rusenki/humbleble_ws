@@ -1,10 +1,7 @@
 <?xml version="1.0"?>
 <robot name="mecanum3" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:property name="body_color"  value="Gazebo/Silver"/>
-  <xacro:property name="wheel_color" value="Gazebo/DarkGrey"/>
-
-  <!-- Gazebo ros2_control plugin      -->
+  <!-- ros2_control plugin: handles arm joints only (wheels removed from command interface) -->
   <gazebo>
     <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
       <parameters>
@@ -14,7 +11,58 @@
   </gazebo>
 
 
-  <!-- Gazebo reference macros : material                     -->
+  <!-- Differential drive plugins for wheel control.
+       Running at Gazebo physics rate (1000 Hz) instead of ros2_control rate (100 Hz),
+       giving 10x faster disturbance rejection when arm reaction forces hit the base.
+       Two plugins cover all four wheels (front pair + back pair). -->
+
+  <!-- Front wheels: publish odom and TF.
+       axis_z signs in mecanum3.xacro are negated so +velocity = +X (forward).
+       With base_joint Rz(-90°): front_left lands at Y=+0.085 (LEFT) and
+       front_right at Y=-0.085 (RIGHT) in base_footprint — matching standard
+       diff_drive convention where left_joint = physically left wheel. -->
+  <gazebo>
+    <plugin name="front_diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <remapping>cmd_vel:=/rover_twist</remapping>
+        <remapping>odom:=/odom</remapping>
+      </ros>
+      <left_joint>front_left_joint</left_joint>
+      <right_joint>front_right_joint</right_joint>
+      <wheel_separation>0.24</wheel_separation>
+      <wheel_diameter>0.152</wheel_diameter>
+      <max_wheel_torque>200</max_wheel_torque>
+      <max_wheel_acceleration>5.0</max_wheel_acceleration>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <publish_wheel_tf>false</publish_wheel_tf>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+    </plugin>
+  </gazebo>
+
+  <!-- Back wheels: same cmd_vel, odom disabled to avoid TF conflict with front plugin -->
+  <gazebo>
+    <plugin name="back_diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <remapping>cmd_vel:=/rover_twist</remapping>
+      </ros>
+      <left_joint>back_left_joint</left_joint>
+      <right_joint>back_right_joint</right_joint>
+      <wheel_separation>0.24</wheel_separation>
+      <wheel_diameter>0.152</wheel_diameter>
+      <max_wheel_torque>200</max_wheel_torque>
+      <max_wheel_acceleration>5.0</max_wheel_acceleration>
+      <publish_odom>false</publish_odom>
+      <publish_odom_tf>false</publish_odom_tf>
+      <publish_wheel_tf>false</publish_wheel_tf>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+    </plugin>
+  </gazebo>
+
+
+  <!-- Material macros -->
   <xacro:macro name="gazebo_material" params="ref material">
     <gazebo reference="${ref}">
       <material>${material}</material>
@@ -22,74 +70,42 @@
   </xacro:macro>
 
 
-  <!-- Gazebo reference macro : suspension spring / damper    -->
-  <xacro:macro name="gazebo_suspension_spring" params="joint">
-    <gazebo reference="${joint}">
-      <springReference>0.0</springReference>
-      <springStiffness>266</springStiffness>
-      <damping>40</damping>
-    </gazebo>
-  </xacro:macro>
-
-
-  <!-- Mecanum Roller Friction Macros (FIXED VERSION)         -->
-  <xacro:macro name="mecanum_barrel_friction" params="linkname dir">
+  <!-- Wheel friction configuration for 4-wheel differential drive.
+       fdir1=(0,1,0) in each wheel link frame = ±X in base_footprint = rolling direction.
+       mu1 (rolling direction): high → prevents wheel spin slip during linear motion.
+       mu2 (lateral direction): low → allows the tiny lateral slip (~10mm/s) that the
+       4-wheel geometry requires during rotation (wheelbase=0.04m creates lateral velocity
+       = omega * 0.02m per rad/s; mu2=10000 would generate ~39kN·m of resistance vs
+       only ~605N·m drive torque, making rotation impossible). -->
+  <xacro:macro name="diff_wheel_friction" params="linkname">
     <gazebo reference="${linkname}">
-      <material>Gazebo/DarkGrey</material>
-      <mu1>1.0</mu1>
-      <mu2>0.6</mu2>
-      <slip1>0.005</slip1>
-      <slip2>0.005</slip2>
-      <kp>1e6</kp>
-      <kd>100.0</kd>
-      <minDepth>0.0001</minDepth>
+      <mu1>1000</mu1>
+      <mu2>1.0</mu2>
+      <fdir1>0 1 0</fdir1>
+      <kp>500000.0</kp>
+      <kd>10.0</kd>
+      <minDepth>0.001</minDepth>
       <maxVel>0.1</maxVel>
     </gazebo>
   </xacro:macro>
 
-  <xacro:macro name="mecanum_barrel_group_friction" params="prefix">
-    <xacro:mecanum_barrel_friction linkname="${prefix}_0_link"  dir="0" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_1_link"  dir="24" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_2_link"  dir="48" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_3_link"  dir="72" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_4_link"  dir="96" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_5_link"  dir="120" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_6_link"  dir="144" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_7_link"  dir="168" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_8_link"  dir="192" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_9_link"  dir="216" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_10_link" dir="240" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_11_link" dir="264" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_12_link" dir="288" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_13_link" dir="312" />
-    <xacro:mecanum_barrel_friction linkname="${prefix}_14_link" dir="336" />
-  </xacro:macro>
+
+  <!-- Materials -->
+  <xacro:gazebo_material ref="base_link"           material="Gazebo/Silver"/>
+  <xacro:gazebo_material ref="front_left_arm"      material="Gazebo/DarkGrey"/>
+  <xacro:gazebo_material ref="front_right_arm"     material="Gazebo/DarkGrey"/>
+  <xacro:gazebo_material ref="back_left_arm"       material="Gazebo/DarkGrey"/>
+  <xacro:gazebo_material ref="back_right_arm"      material="Gazebo/DarkGrey"/>
+  <xacro:gazebo_material ref="front_left_wheel_1"  material="Gazebo/Silver"/>
+  <xacro:gazebo_material ref="front_right_wheel_1" material="Gazebo/Silver"/>
+  <xacro:gazebo_material ref="back_left_wheel_1"   material="Gazebo/Silver"/>
+  <xacro:gazebo_material ref="back_right_wheel_1"  material="Gazebo/Silver"/>
 
 
-  <!-- Materials (Base / Arms / Wheels) -->
-  <xacro:gazebo_material ref="base_link" 		material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="front_left_arm"  		material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="front_right_arm" 		material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="back_left_arm"		material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="back_right_arm"  		material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="front_left_wheel_1"  	material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="front_right_wheel_1" 	material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="back_left_wheel_1"   	material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="back_right_wheel_1"  	material="Gazebo/Silver"/>
-
-
-  <!-- Gazebo suspension spring/damper (common) -->
-  <xacro:gazebo_suspension_spring joint="front_left_suspension_joint"/>
-  <xacro:gazebo_suspension_spring joint="front_right_suspension_joint"/>
-  <xacro:gazebo_suspension_spring joint="back_left_suspension_joint"/>
-  <xacro:gazebo_suspension_spring joint="back_right_suspension_joint"/>
-
-
-  <!-- Apply roller friction to all 4 mecanum wheels          -->
-  <xacro:mecanum_barrel_group_friction prefix="front_left_barrel" />
-  <xacro:mecanum_barrel_group_friction prefix="back_left_barrel" />
-  <xacro:mecanum_barrel_group_friction prefix="front_right_barrel" />
-  <xacro:mecanum_barrel_group_friction prefix="back_right_barrel" />
+  <!-- High-friction cylinder contacts on all 4 wheels -->
+  <xacro:diff_wheel_friction linkname="front_left_wheel_1"/>
+  <xacro:diff_wheel_friction linkname="front_right_wheel_1"/>
+  <xacro:diff_wheel_friction linkname="back_left_wheel_1"/>
+  <xacro:diff_wheel_friction linkname="back_right_wheel_1"/>
 
 </robot>
-
