@@ -103,6 +103,10 @@ add_executable(pick_place_hum_3
   src/pick_place_humble_3.cpp
 )
 
+add_executable(survey_ik
+  src/survey_ik.cpp
+)
+
 
 set(dependencies
   rclcpp 
@@ -151,6 +155,7 @@ ament_target_dependencies(pick_place_hum ${dependencies})
 ament_target_dependencies(pick_place_hum_2 ${dependencies})
 ament_target_dependencies(pick_place_hum_3 ${dependencies})
 ament_target_dependencies(initial_posi_gz ${dependencies})
+ament_target_dependencies(survey_ik ${dependencies})
 
 
 install(TARGETS
@@ -172,6 +177,7 @@ install(TARGETS
   pick_place_hum
   pick_place_hum_2
   pick_place_hum_3
+  survey_ik
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch

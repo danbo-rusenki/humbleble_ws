@@ -153,26 +153,38 @@
   </gazebo>
   <gazebo reference="inner_link_left_1">
     <material>Gazebo/Silver</material>
+    <mu1>2.0</mu1><mu2>2.0</mu2>
     <selfCollide>false</selfCollide>
   </gazebo>
   <gazebo reference="inner_link_right_1">
     <material>Gazebo/Silver</material>
+    <mu1>2.0</mu1><mu2>2.0</mu2>
     <selfCollide>false</selfCollide>
   </gazebo>
   <gazebo reference="outer_link_left_1">
     <material>Gazebo/Silver</material>
+    <mu1>2.0</mu1><mu2>2.0</mu2>
     <selfCollide>false</selfCollide>
   </gazebo>
   <gazebo reference="outer_link_right_1">
     <material>Gazebo/Silver</material>
+    <mu1>2.0</mu1><mu2>2.0</mu2>
     <selfCollide>false</selfCollide>
   </gazebo>
+  <!-- finger_left/right_1: 把持面なので高摩擦 + 接触剛性を設定 -->
+  <!-- finger_left/right_1: 把持面なので高摩擦 + 接触剛性を設定
+       kp=1e6: すり抜け防止に必要な硬さ
+       kd=1e3: 接触振動を減衰 (旧値 1e2 → 10倍) -->
   <gazebo reference="finger_left_1">
     <material>Gazebo/Silver</material>
+    <mu1>3.0</mu1><mu2>3.0</mu2>
+    <kp>1e6</kp><kd>1e3</kd>
     <selfCollide>false</selfCollide>
   </gazebo>
   <gazebo reference="finger_right_1">
     <material>Gazebo/Silver</material>
+    <mu1>3.0</mu1><mu2>3.0</mu2>
+    <kp>1e6</kp><kd>1e3</kd>
     <selfCollide>false</selfCollide>
   </gazebo>
   <gazebo reference="tcp_link">
