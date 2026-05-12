@@ -34,7 +34,8 @@ private:
     arm_msg.joint_names = {"Joint_1", "Joint_2", "Joint_3", "Joint_4", "Joint_5"};
 
     trajectory_msgs::msg::JointTrajectoryPoint arm_point;
-    arm_point.positions  = {0.00, 2.3, -2.3, -0.50, 0};
+    // arm_point.positions  = {0.00, 2.3, -2.3, -0.50, 0};
+    arm_point.positions  = {0.00, 2.3, -2.3, -0.2, 0};
     arm_point.velocities = {0.0, 0.0, 0.0, 0.0, 0.0};
     arm_point.time_from_start.sec     = 5;
     arm_point.time_from_start.nanosec = 0;

@@ -24,7 +24,11 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <moveit_msgs/msg/collision_object.hpp>
+#include <moveit_msgs/msg/constraints.hpp>
+#include <moveit_msgs/msg/joint_constraint.hpp>
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <control_msgs/action/gripper_command.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -41,6 +45,15 @@ using MoveGroupInterface     = moveit::planning_interface::MoveGroupInterface;
 using PlanningSceneInterface = moveit::planning_interface::PlanningSceneInterface;
 using GripperCommand         = control_msgs::action::GripperCommand;
 using GripperClient          = rclcpp_action::Client<GripperCommand>;
+
+// ═══════════════════════════════════════════════════════════════
+// Joint_4 固定モード
+//   true  : Joint_4 を FIXED_JOINT_4_VALUE に固定して位置のみでIK計算
+//   false : RPY姿勢を指定して従来の setPoseTarget() でIK計算
+// ═══════════════════════════════════════════════════════════════
+const bool   USE_JOINT_FIX       = true;
+// const double FIXED_JOINT_4_VALUE = -0.2;
+const double FIXED_JOINT_4_VALUE = -1.0;      
 
 // ═══════════════════════════════════════════════════════════════
 // グラスプモードの選択  ← ここを変更して切り替え
@@ -296,39 +309,134 @@ void closeGripperGradually(
 
 // ───────────────────────────────────────────────────────────────
 // アームを base_footprint フレーム基準の姿勢へ移動
-// ori_tol: 姿勢許容誤差 [rad] (省略時 M_PI/4 = 45°)
+//
+// USE_JOINT_FIX == true の場合:
+//   Joint_4 を FIXED_JOINT_4_VALUE に固定するパス拘束を設定し、
+//   位置のみ (setPositionTarget) で IK を解く。
+//   RPY 引数は無視される (ログ表示のみ使用)。
+//
+// USE_JOINT_FIX == false の場合:
+//   従来通り setPoseTarget() で位置 + 姿勢を指定する。
+//   ori_tol: 姿勢許容誤差 [rad] (省略時 M_PI/4 = 45°)
 // ───────────────────────────────────────────────────────────────
-// 成功時 true、失敗時 false を返す
 bool moveTo(MoveGroupInterface &group,
             double x, double y, double z,
             double roll_deg, double pitch_deg, double yaw_deg,
             double speed_scaling,
-            double ori_tol = M_PI / 4.0)
+            double ori_tol = M_PI / 4.0,
+            bool apply_joint_constraint = true)
 {
   group.setStartStateToCurrentState();
-
-  tf2::Quaternion q;
-  q.setRPY(deg2rad(roll_deg), deg2rad(pitch_deg), deg2rad(yaw_deg));
-  geometry_msgs::msg::Pose target;
-  target.orientation = tf2::toMsg(q);
-  target.position.x  = x;
-  target.position.y  = y;
-  target.position.z  = z;
-
   group.setMaxVelocityScalingFactor(speed_scaling);
   group.setMaxAccelerationScalingFactor(speed_scaling * 0.5);
-  group.setPoseTarget(target);
   group.setGoalPositionTolerance(0.01);
-  group.setGoalOrientationTolerance(ori_tol);
 
-  RCLCPP_INFO(rclcpp::get_logger("pick_place"),
-    "Moving to (%.3f, %.3f, %.3f) RPY=(%.1f, %.1f, %.1f) ori_tol=%.0f° speed=%.2f",
-    x, y, z, roll_deg, pitch_deg, yaw_deg, ori_tol * 180.0 / M_PI, speed_scaling);
+  if (USE_JOINT_FIX && apply_joint_constraint) {
+    // Joint_4 固定拘束
+    moveit_msgs::msg::Constraints constraints;
+    moveit_msgs::msg::JointConstraint jc;
+    jc.joint_name    = "Joint_4";
+    jc.position      = FIXED_JOINT_4_VALUE;
+    jc.tolerance_above = 0.01;
+    jc.tolerance_below = 0.01;
+    jc.weight        = 1.0;
+    constraints.joint_constraints.push_back(jc);
+    group.setPathConstraints(constraints);
+
+    group.setPositionTarget(x, y, z);
+
+    RCLCPP_INFO(rclcpp::get_logger("pick_place"),
+      "[JointFix] Moving to (%.3f, %.3f, %.3f)  Joint_4=%.2f rad  speed=%.2f",
+      x, y, z, FIXED_JOINT_4_VALUE, speed_scaling);
+  } else if (USE_JOINT_FIX && !apply_joint_constraint) {
+    // 拘束なし: 位置のみ指定、姿勢は自由 (PLACE など遠方移動向け)
+    group.setPositionTarget(x, y, z);
+
+    RCLCPP_INFO(rclcpp::get_logger("pick_place"),
+      "[Free] Moving to (%.3f, %.3f, %.3f)  no Joint_4 constraint  speed=%.2f",
+      x, y, z, speed_scaling);
+  } else {
+    tf2::Quaternion q;
+    q.setRPY(deg2rad(roll_deg), deg2rad(pitch_deg), deg2rad(yaw_deg));
+    geometry_msgs::msg::Pose target;
+    target.orientation = tf2::toMsg(q);
+    target.position.x  = x;
+    target.position.y  = y;
+    target.position.z  = z;
+
+    group.setPoseTarget(target);
+    group.setGoalOrientationTolerance(ori_tol);
+
+    RCLCPP_INFO(rclcpp::get_logger("pick_place"),
+      "Moving to (%.3f, %.3f, %.3f) RPY=(%.1f, %.1f, %.1f) ori_tol=%.0f° speed=%.2f",
+      x, y, z, roll_deg, pitch_deg, yaw_deg, ori_tol * 180.0 / M_PI, speed_scaling);
+  }
 
   auto result = group.move();
+
+  if (USE_JOINT_FIX) {
+    group.clearPathConstraints();
+  }
+
   if (result != moveit::core::MoveItErrorCode::SUCCESS) {
     RCLCPP_ERROR(rclcpp::get_logger("pick_place"),
       "Motion to (%.3f, %.3f, %.3f) FAILED (code: %d) → シーケンス中断", x, y, z, result.val);
+    return false;
+  }
+  return true;
+}
+
+// ───────────────────────────────────────────────────────────────
+// 現在姿勢を維持したまま指定座標へ直線移動 (Cartesian path)
+//
+// Joint_4 パス拘束方式の問題:
+//   Free 移動後の Joint_4 は不定値になる。その状態から
+//   tolerance=±0.01 rad の拘束を設けると start state が
+//   拘束を満たさず即座に PLANNING_FAILED (code=-2) する。
+//
+// 解決策: computeCartesianPath で TCP を直線補間する。
+//   - 短距離降下(アプローチ/配置)に最適
+//   - 関節拘束なしで姿勢を自然に維持できる
+//   - fraction < 0.95 なら失敗を返す
+// ───────────────────────────────────────────────────────────────
+bool moveCartesian(MoveGroupInterface &group,
+                   double x, double y, double z,
+                   double speed_scaling)
+{
+  group.setStartStateToCurrentState();
+
+  // 現在の EEF 姿勢を取得し、位置だけ書き換えてウェイポイントにする
+  geometry_msgs::msg::Pose target = group.getCurrentPose().pose;
+  target.position.x = x;
+  target.position.y = y;
+  target.position.z = z;
+
+  std::vector<geometry_msgs::msg::Pose> waypoints = {target};
+  moveit_msgs::msg::RobotTrajectory traj_msg;
+  // eef_step=5mm, jump_threshold=0 (無効化)
+  double fraction = group.computeCartesianPath(waypoints, 0.005, 0.0, traj_msg);
+
+  RCLCPP_INFO(rclcpp::get_logger("pick_place"),
+    "[Cartesian] Moving to (%.3f, %.3f, %.3f)  coverage=%.0f%%  speed=%.2f",
+    x, y, z, fraction * 100.0, speed_scaling);
+
+  if (fraction < 0.95) {
+    RCLCPP_ERROR(rclcpp::get_logger("pick_place"),
+      "Cartesian path planning failed: %.0f%% achieved (need ≥95%%)", fraction * 100.0);
+    return false;
+  }
+
+  // computeCartesianPath はスピードスケーリングを無視するため再パラメータ化
+  robot_trajectory::RobotTrajectory rt(group.getRobotModel(), group.getName());
+  rt.setRobotTrajectoryMsg(*group.getCurrentState(), traj_msg);
+  trajectory_processing::TimeOptimalTrajectoryGeneration totg;
+  totg.computeTimeStamps(rt, speed_scaling, speed_scaling * 0.5);
+  rt.getRobotTrajectoryMsg(traj_msg);
+
+  auto result = group.execute(traj_msg);
+  if (result != moveit::core::MoveItErrorCode::SUCCESS) {
+    RCLCPP_ERROR(rclcpp::get_logger("pick_place"),
+      "Cartesian execute FAILED (code: %d)", result.val);
     return false;
   }
   return true;
@@ -461,7 +569,7 @@ int main(int argc, char **argv)
   controlGripper(node, gripper_client, GRIPPER_OPEN);
 
   RCLCPP_INFO(node->get_logger(), "── アプローチ準備位置へ移動 (高め位置)");
-  if (!moveTo(arm, pre_x, pre_y, pre_z, g_roll, g_pitch, g_yaw, 0.6, ORI_TOL)) {
+  if (!moveTo(arm, pre_x, pre_y, pre_z, g_roll, g_pitch, g_yaw, 0.6, ORI_TOL, false)) {
     RCLCPP_ERROR(node->get_logger(), "準備位置への移動失敗。中断します。");
     rclcpp::shutdown(); spinner.join(); return 1;
   }
@@ -470,7 +578,7 @@ int main(int argc, char **argv)
   // アームが直接低い z へ水平姿勢で移動できない場合の 2 段アプローチ
   if (GRASP_MODE == GraspMode::SIDE) {
     RCLCPP_INFO(node->get_logger(), "── [SIDE] グリップ高さまで降下");
-    if (!moveTo(arm, pre_x, pre_y, grip_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL)) {
+    if (!moveTo(arm, pre_x, pre_y, grip_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL, false)) {
       RCLCPP_ERROR(node->get_logger(), "グリップ高さへの降下失敗。中断します。");
       rclcpp::shutdown(); spinner.join(); return 1;
     }
@@ -482,8 +590,8 @@ int main(int argc, char **argv)
   planning_scene_interface.removeCollisionObjects({"pick_object"});
   rclcpp::sleep_for(500ms);
 
-  RCLCPP_INFO(node->get_logger(), "── 把持位置へゆっくり接近");
-  if (!moveTo(arm, grip_x, grip_y, grip_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL)) {
+  RCLCPP_INFO(node->get_logger(), "── 把持位置へゆっくり降下 [Cartesian 直線補間]");
+  if (!moveCartesian(arm, grip_x, grip_y, grip_z, 0.3)) {
     RCLCPP_ERROR(node->get_logger(), "把持位置への移動失敗。中断します。");
     rclcpp::shutdown(); spinner.join(); return 1;
   }
@@ -493,7 +601,7 @@ int main(int argc, char **argv)
   closeGripperGradually(node, gripper_client, GRIPPER_CLOSE);
 
   RCLCPP_INFO(node->get_logger(), "── 物体を持ち上げる");
-  if (!moveTo(arm, OBJ_X, OBJ_Y, lift_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL)) {
+  if (!moveTo(arm, OBJ_X, OBJ_Y, lift_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL, false)) {
     RCLCPP_ERROR(node->get_logger(), "持ち上げ失敗。中断します。");
     rclcpp::shutdown(); spinner.join(); return 1;
   }
@@ -504,13 +612,13 @@ int main(int argc, char **argv)
   RCLCPP_INFO(node->get_logger(), "════ PLACE ════");
 
   RCLCPP_INFO(node->get_logger(), "── 配置位置の上方へ移動");
-  if (!moveTo(arm, PLACE_X, PLACE_Y, lift_z, g_roll, g_pitch, g_yaw, 0.6, ORI_TOL)) {
+  if (!moveTo(arm, PLACE_X, PLACE_Y, lift_z, g_roll, g_pitch, g_yaw, 0.6, ORI_TOL, false)) {
     RCLCPP_ERROR(node->get_logger(), "配置位置上方への移動失敗。中断します。");
     rclcpp::shutdown(); spinner.join(); return 1;
   }
 
-  RCLCPP_INFO(node->get_logger(), "── 配置位置へゆっくり降下");
-  if (!moveTo(arm, PLACE_X, PLACE_Y, PLACE_Z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL)) {
+  RCLCPP_INFO(node->get_logger(), "── 配置位置へゆっくり降下 [Cartesian 直線補間]");
+  if (!moveCartesian(arm, PLACE_X, PLACE_Y, PLACE_Z, 0.3)) {
     RCLCPP_ERROR(node->get_logger(), "配置位置への降下失敗。中断します。");
     rclcpp::shutdown(); spinner.join(); return 1;
   }
@@ -519,7 +627,7 @@ int main(int argc, char **argv)
   controlGripper(node, gripper_client, GRIPPER_OPEN);
 
   RCLCPP_INFO(node->get_logger(), "── 退避");
-  moveTo(arm, PLACE_X, PLACE_Y, lift_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL);
+  moveTo(arm, PLACE_X, PLACE_Y, lift_z, g_roll, g_pitch, g_yaw, 0.3, ORI_TOL, false);
 
   RCLCPP_INFO(node->get_logger(), "════ Pick and place 完了 ════");
 

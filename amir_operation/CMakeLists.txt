@@ -95,6 +95,14 @@ add_executable(pick_place_hum
   src/pick_place_humble.cpp
 )
 
+add_executable(jointfix
+  src/jointfix_pick_place.cpp
+)
+
+add_executable(ultra
+  src/pick_place_ultra.cpp
+)
+
 add_executable(pick_place_hum_2
   src/pick_place_humble_2.cpp
 )
@@ -156,7 +164,8 @@ ament_target_dependencies(pick_place_hum_2 ${dependencies})
 ament_target_dependencies(pick_place_hum_3 ${dependencies})
 ament_target_dependencies(initial_posi_gz ${dependencies})
 ament_target_dependencies(survey_ik ${dependencies})
-
+ament_target_dependencies(jointfix ${dependencies})
+ament_target_dependencies(ultra ${dependencies})
 
 install(TARGETS
   initial_posi
@@ -177,7 +186,9 @@ install(TARGETS
   pick_place_hum
   pick_place_hum_2
   pick_place_hum_3
+  jointfix
   survey_ik
+  ultra
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
