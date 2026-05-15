@@ -12,7 +12,6 @@ cd ~/ros2_humble_ws/src
 
 git clone https://github.com/danbo-rusenki/humbleble_ws.git -b sim
 git clone https://github.com/ros-controls/gz_ros2_control.git -b humble
-git clone https://github.com/vstoneofficial/vs_rover_options_description.git -b humble
 
 rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
@@ -39,7 +38,14 @@ chmod +x joint_state_filter.py
 ```bash
 ros2 launch amir_gazebo gazebo_bringup.launch.py
 ```
-
+　箱を出現させる
+```bash
+ros2 launch mecanumrover3_gazebo spawn_box.launch.py 
+```
+　壁を出現させる
+```bash
+ros2 launch mecanumrover3_gazebo spawn_wor.launch.py scale:=0.001
+```
 2. 初期位置移動
 ```bash
 ros2 run amir_operation initial_posi_gz
@@ -52,8 +58,12 @@ ros2 launch amir_moveit_config moveit_gazebo.launch.py
 
 4. moveit2に指示送る
 ```bash
-ros2 run amir_operation pick_place_hum
+ros2 launch amir_operation pick_place_fix_launch.py 
 ```
 
+5. nav2 
+```bash
+ros2 launch mecanum_navigation2 bringup_launch.py
+```
 # 問題点
 物体を掴むのが難しい。あとmoveit2も位置は正確に計算できるけど、姿勢まで考慮すると難しいかも。でもpick and placeに必要なので、修正予定。
