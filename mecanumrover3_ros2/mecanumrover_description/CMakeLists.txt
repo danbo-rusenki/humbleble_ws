@@ -5,10 +5,11 @@ find_package(ament_cmake REQUIRED)
 
 message(STATUS ">>> Installing rover_twist_relay.py into lib/${PROJECT_NAME}")
 
-# Python node
+# Python nodes
 install(
   PROGRAMS
     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/rover_twist_relay.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/rover_twist_relay_ign.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

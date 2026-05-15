@@ -1,111 +1,60 @@
 <?xml version="1.0"?>
 <robot name="mecanum3" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- ros2_control plugin: handles arm joints only (wheels removed from command interface) -->
+  <!-- gz_ros2_control plugin for Ignition Gazebo (Fortress / v6)
+       filename: gz_ros2_control-system  (no lib prefix, no .so suffix)
+       Loads both MecanumSystem (wheels) and AmirGazeboSystem (arm) from the URDF.
+       cmd_vel of mecanum_drive_controller is remapped to /rover_twist for
+       backward compatibility with existing navigation code. -->
+  <!-- gz_ros2_control plugin for Ignition Gazebo.
+       Note: <ros><remapping> ここで書いてもcontroller_managerには届かないため不使用。
+       /rover_twist → /mecanum_drive_controller/cmd_vel の中継は
+       gazebo_bringup.launch.py 内の rover_twist_relay_ign ノードで行う。 -->
   <gazebo>
-    <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-      <parameters>
-        $(find mecanumrover_description)/params/controllers.yaml
-      </parameters>
-    </plugin>
-  </gazebo>
-
-
-  <!-- Differential drive plugins for wheel control.
-       Running at Gazebo physics rate (1000 Hz) instead of ros2_control rate (100 Hz),
-       giving 10x faster disturbance rejection when arm reaction forces hit the base.
-       Two plugins cover all four wheels (front pair + back pair). -->
-
-  <!-- Front wheels: publish odom and TF.
-       axis_z signs in mecanum3.xacro are negated so +velocity = +X (forward).
-       With base_joint Rz(-90°): front_left lands at Y=+0.085 (LEFT) and
-       front_right at Y=-0.085 (RIGHT) in base_footprint — matching standard
-       diff_drive convention where left_joint = physically left wheel. -->
-  <gazebo>
-    <plugin name="front_diff_drive" filename="libgazebo_ros_diff_drive.so">
+    <plugin filename="gz_ros2_control-system"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find mecanumrover_description)/params/controllers.yaml</parameters>
       <ros>
-        <remapping>cmd_vel:=/rover_twist</remapping>
-        <remapping>odom:=/odom</remapping>
+        <!-- Expose odometry at /odom for nav-stack compatibility -->
+        <remapping>/mecanum_drive_controller/odometry:=/odom</remapping>
       </ros>
-      <left_joint>front_left_joint</left_joint>
-      <right_joint>front_right_joint</right_joint>
-      <wheel_separation>0.24</wheel_separation>
-      <wheel_diameter>0.152</wheel_diameter>
-      <max_wheel_torque>200</max_wheel_torque>
-      <max_wheel_acceleration>5.0</max_wheel_acceleration>
-      <publish_odom>true</publish_odom>
-      <publish_odom_tf>true</publish_odom_tf>
-      <publish_wheel_tf>false</publish_wheel_tf>
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_footprint</robot_base_frame>
-    </plugin>
-  </gazebo>
-
-  <!-- Back wheels: same cmd_vel, odom disabled to avoid TF conflict with front plugin -->
-  <gazebo>
-    <plugin name="back_diff_drive" filename="libgazebo_ros_diff_drive.so">
-      <ros>
-        <remapping>cmd_vel:=/rover_twist</remapping>
-      </ros>
-      <left_joint>back_left_joint</left_joint>
-      <right_joint>back_right_joint</right_joint>
-      <wheel_separation>0.24</wheel_separation>
-      <wheel_diameter>0.152</wheel_diameter>
-      <max_wheel_torque>200</max_wheel_torque>
-      <max_wheel_acceleration>5.0</max_wheel_acceleration>
-      <publish_odom>false</publish_odom>
-      <publish_odom_tf>false</publish_odom_tf>
-      <publish_wheel_tf>false</publish_wheel_tf>
-      <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_footprint</robot_base_frame>
     </plugin>
   </gazebo>
 
 
-  <!-- Material macros -->
-  <xacro:macro name="gazebo_material" params="ref material">
-    <gazebo reference="${ref}">
-      <material>${material}</material>
-    </gazebo>
-  </xacro:macro>
-
-
-  <!-- Wheel friction configuration for 4-wheel differential drive.
-       fdir1=(0,1,0) in each wheel link frame = ±X in base_footprint = rolling direction.
-       mu1 (rolling direction): high → prevents wheel spin slip during linear motion.
-       mu2 (lateral direction): low → allows the tiny lateral slip (~10mm/s) that the
-       4-wheel geometry requires during rotation (wheelbase=0.04m creates lateral velocity
-       = omega * 0.02m per rad/s; mu2=10000 would generate ~39kN·m of resistance vs
-       only ~605N·m drive torque, making rotation impossible). -->
-  <xacro:macro name="diff_wheel_friction" params="linkname">
+  <!-- Wheel friction for Ignition Gazebo.
+       Classic Gazebo used <mu1>/<mu2>/<kp>/<kd> as direct children of <gazebo reference>.
+       Ignition requires the full <collision><surface> hierarchy.
+       mu1 (rolling dir): high → prevents slip during linear motion.
+       mu2 (lateral dir): low → allows the lateral creep mecanum kinematics require.
+       fdir1 = rolling direction in wheel link frame (along wheel axis = Y in link frame). -->
+  <xacro:macro name="ign_wheel_friction" params="linkname">
     <gazebo reference="${linkname}">
-      <mu1>1000</mu1>
-      <mu2>1.0</mu2>
-      <fdir1>0 1 0</fdir1>
-      <kp>500000.0</kp>
-      <kd>10.0</kd>
-      <minDepth>0.001</minDepth>
-      <maxVel>0.1</maxVel>
+      <collision>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1000</mu>
+              <mu2>1.0</mu2>
+              <fdir1>0 1 0</fdir1>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>500000.0</kp>
+              <kd>10.0</kd>
+              <min_depth>0.001</min_depth>
+              <max_vel>0.1</max_vel>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
     </gazebo>
   </xacro:macro>
 
-
-  <!-- Materials -->
-  <xacro:gazebo_material ref="base_link"           material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="front_left_arm"      material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="front_right_arm"     material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="back_left_arm"       material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="back_right_arm"      material="Gazebo/DarkGrey"/>
-  <xacro:gazebo_material ref="front_left_wheel_1"  material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="front_right_wheel_1" material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="back_left_wheel_1"   material="Gazebo/Silver"/>
-  <xacro:gazebo_material ref="back_right_wheel_1"  material="Gazebo/Silver"/>
-
-
-  <!-- High-friction cylinder contacts on all 4 wheels -->
-  <xacro:diff_wheel_friction linkname="front_left_wheel_1"/>
-  <xacro:diff_wheel_friction linkname="front_right_wheel_1"/>
-  <xacro:diff_wheel_friction linkname="back_left_wheel_1"/>
-  <xacro:diff_wheel_friction linkname="back_right_wheel_1"/>
+  <xacro:ign_wheel_friction linkname="front_left_wheel_1"/>
+  <xacro:ign_wheel_friction linkname="front_right_wheel_1"/>
+  <xacro:ign_wheel_friction linkname="back_left_wheel_1"/>
+  <xacro:ign_wheel_friction linkname="back_right_wheel_1"/>
 
 </robot>

@@ -21,5 +21,7 @@
 
   <export>
     <build_type>ament_cmake</build_type>
+    <!-- IGN_GAZEBO_RESOURCE_PATH / GZ_SIM_RESOURCE_PATH に追加 (ros_gz_sim が読む) -->
+    <gazebo_ros gazebo_model_path="${prefix}/.."/>
   </export>
 </package>

@@ -5,6 +5,7 @@
   <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3.gazebo" />
   <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3_ros2_control.xacro" />
 
+  <xacro:include filename="$(find vs_rover_options_description)/urdf/lrf/tg30_mecanum3.xacro" />
 
   <!-- Arm link macro -->
   <xacro:macro name="mecanum_arm_link" params="name">

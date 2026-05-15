@@ -8,8 +8,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY launch config
+  DIRECTORY launch config worlds
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS scripts/odom_tf_relay.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
