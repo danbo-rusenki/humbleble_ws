@@ -4,7 +4,7 @@
   <ros2_control name="MecanumSystem" type="system">
 
     <hardware>
-      <!-- Ignition Gazebo hardware plugin (replaces gazebo_ros2_control/GazeboSystem) -->
+      <!-- Ignition Gazebo hardware plugin (matches gz_ros2_control-system in mecanum3.gazebo) -->
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
 

@@ -7,6 +7,77 @@
 
   <xacro:include filename="$(find vs_rover_options_description)/urdf/lrf/tg30_mecanum3.xacro" />
 
+
+  <!-- Inertial macros -->
+  <xacro:macro name="cylinder_inertial" params="mass radius length">
+    <mass value="${mass}"/>
+    <inertia
+      ixx="${((radius*radius)/4 + (length*length)/12)*mass}"
+      ixy="0" ixz="0"
+      iyy="${((radius*radius)/4 + (length*length)/12)*mass}"
+      iyz="0"
+      izz="${(mass*radius*radius)/2}" />
+  </xacro:macro>
+
+
+  <!-- Barrel (roller) macros -->
+  <xacro:macro name="barrel_rl" params="prefix parent dir rot">
+    <joint name="${prefix}_joint" type="continuous">
+      <parent link="${parent}"/>
+      <child  link="${prefix}_link"/>
+      <origin
+        xyz="${0.0666389*cos(radians(dir))} ${0.0666389*sin(radians(dir))} 0"
+        rpy="${pi/4*rot} 0 ${radians(dir)}"/>
+      <axis xyz="0 0 1"/>
+      <dynamics damping="0.001" friction="0.0"/>
+    </joint>
+    <link name="${prefix}_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://mecanumrover_description/meshes/mecanum3/mecanum_barrel.stl"/>
+        </geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mecanumrover_description/meshes/mecanum3/mecanum_barrel.stl"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <xacro:cylinder_inertial
+          mass="0.01225"
+          radius="0.00956"
+          length="0.0381"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="barrels_rl" params="prefix parent rot">
+    <xacro:barrel_rl prefix="${prefix}_0"  parent="${parent}" dir="0"   rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_1"  parent="${parent}" dir="24"  rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_2"  parent="${parent}" dir="48"  rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_3"  parent="${parent}" dir="72"  rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_4"  parent="${parent}" dir="96"  rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_5"  parent="${parent}" dir="120" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_6"  parent="${parent}" dir="144" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_7"  parent="${parent}" dir="168" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_8"  parent="${parent}" dir="192" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_9"  parent="${parent}" dir="216" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_10" parent="${parent}" dir="240" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_11" parent="${parent}" dir="264" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_12" parent="${parent}" dir="288" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_13" parent="${parent}" dir="312" rot="${rot}"/>
+    <xacro:barrel_rl prefix="${prefix}_14" parent="${parent}" dir="336" rot="${rot}"/>
+  </xacro:macro>
+
+  <xacro:macro name="attach_mecanum_rollers" params="wheel_prefix wheel_link rot">
+    <xacro:barrels_rl
+      prefix="${wheel_prefix}_barrel"
+      parent="${wheel_link}"
+      rot="${rot}"/>
+  </xacro:macro>
+
+
   <!-- Arm link macro -->
   <xacro:macro name="mecanum_arm_link" params="name">
     <link name="${name}">
@@ -33,8 +104,8 @@
 
 
   <!-- Wheel link macros
-       Collision changed from mecanum STL mesh to cylinder for stable ODE contact.
-       radius=0.076 matches the mecanum outer radius (barrel center 0.0666 + barrel radius 0.00956). -->
+       Collision uses the actual STL mesh so barrel rollers are the outermost
+       contact geometry (no separate cylinder approximation needed). -->
   <xacro:macro name="mecanum_wheel_link" params="name">
     <link name="${name}">
       <inertial>
@@ -51,7 +122,8 @@
       </visual>
       <collision>
         <geometry>
-          <cylinder radius="0.076" length="0.05"/>
+          <mesh filename="package://mecanumrover_description/meshes/mecanum3/mecanum_wheel.stl"
+                scale="0.001 0.001 0.001"/>
         </geometry>
       </collision>
     </link>
@@ -73,7 +145,8 @@
       </visual>
       <collision>
         <geometry>
-          <cylinder radius="0.076" length="0.05"/>
+          <mesh filename="package://mecanumrover_description/meshes/mecanum3/mecanum_wheel_rev.stl"
+                scale="0.001 0.001 0.001"/>
         </geometry>
       </collision>
     </link>
@@ -199,5 +272,29 @@
     xyz="0.03 -0.100 0"
     rpy="0 ${radians(90)} 0"
     axis_z="-1"/>
+
+
+  <!-- Attach mecanum rollers (15 barrels per wheel at 24° intervals, ±45° tilt)
+       rot=-1 → -45° tilt (rev wheel pattern: front_left, back_right)
+       rot=+1 → +45° tilt (normal wheel pattern: front_right, back_left) -->
+  <xacro:attach_mecanum_rollers
+    wheel_prefix="front_left"
+    wheel_link="front_left_wheel_1"
+    rot="-1"/>
+
+  <xacro:attach_mecanum_rollers
+    wheel_prefix="front_right"
+    wheel_link="front_right_wheel_1"
+    rot="1"/>
+
+  <xacro:attach_mecanum_rollers
+    wheel_prefix="back_left"
+    wheel_link="back_left_wheel_1"
+    rot="1"/>
+
+  <xacro:attach_mecanum_rollers
+    wheel_prefix="back_right"
+    wheel_link="back_right_wheel_1"
+    rot="-1"/>
 
 </robot>
