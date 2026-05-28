@@ -14,7 +14,7 @@
       <always_on>true</always_on>
       <visualize>$(arg front_laser_visual)</visualize>
       <pose>0 0 0 0 0 0</pose>
-      <update_rate>12</update_rate>
+      <update_rate>8</update_rate>
       <ray>
         <scan>
           <horizontal>
@@ -46,7 +46,7 @@
       <always_on>true</always_on>
       <visualize>$(arg back_laser_visual)</visualize>
       <pose>0 0 0 0 0 0</pose>
-      <update_rate>12</update_rate>
+      <update_rate>8</update_rate>
       <ray>
         <scan>
           <horizontal>
