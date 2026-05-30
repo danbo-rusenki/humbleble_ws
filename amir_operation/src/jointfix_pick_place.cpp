@@ -171,14 +171,34 @@ bool moveToPositionConstrained(
     group.setStartStateToCurrentState();
 
     moveit_msgs::msg::Constraints constraints;
-    moveit_msgs::msg::JointConstraint jc;
-    jc.joint_name     = "Joint_5";
-    jc.position       = FIXED_JOINT_5_VALUE;
-    jc.tolerance_above = 0.05; // ±約3度の余裕を持たせてプランを通りやすくする
-    jc.tolerance_below = 0.05;
-    jc.weight         = 1.0;
-    constraints.joint_constraints.push_back(jc);
+    // moveit_msgs::msg::JointConstraint jc;
+    // jc.joint_name     = "Joint_5";
+    // jc.position       = FIXED_JOINT_5_VALUE;
+    // jc.tolerance_above = 0.05; // ±約3度の余裕を持たせてプランを通りやすくする
+    // jc.tolerance_below = 0.05;
+    // jc.weight         = 1.0;
+    // constraints.joint_constraints.push_back(jc);
+    // group.setPathConstraints(constraints);
+
+    moveit_msgs::msg::JointConstraint jc4;
+    jc4.joint_name      = "Joint_4";
+    jc4.position        = 0.0;  // 中心値
+    jc4.tolerance_above = 0.5;  // 上限方向への許容幅 (0.0 + 0.5 = 0.5)
+    jc4.tolerance_below = 0.5;  // 下限方向への許容幅 (0.0 - 0.5 = -0.5)
+    jc4.weight          = 1.0;
+    constraints.joint_constraints.push_back(jc4);
+
+    // Joint_5 の固定 (必要に応じてこちらも範囲制限に変更可能)
+    moveit_msgs::msg::JointConstraint jc5;
+    jc5.joint_name      = "Joint_5";
+    jc5.position        = FIXED_JOINT_5_VALUE;
+    jc5.tolerance_above = 0.05; // ほぼ固定
+    jc5.tolerance_below = 0.05; // ほぼ固定
+    jc5.weight          = 1.0;
+    constraints.joint_constraints.push_back(jc5);
+
     group.setPathConstraints(constraints);
+
 
     group.setPositionTarget(x, y, z);
     group.setGoalPositionTolerance(0.01);
@@ -269,18 +289,26 @@ int main(int argc, char **argv) {
     closeGripperGradually(node, gripper_client, GRIPPER_CLOSE);
 
     // 5. 持ち上げ (拘束なし。把持後は関節状態が変わるため Free で計画する)
-    if (!moveToPositionFree(arm, OBJ_X, OBJ_Y, OBJ_Z + APPROACH_HEIGHT, 0.3)) {
+    // if (!moveToPositionFree(arm, OBJ_X, OBJ_Y, OBJ_Z + APPROACH_HEIGHT, 0.3)) {
+    //     goto shutdown;
+    // }
+    if (!moveToPositionConstrained(arm, OBJ_X, OBJ_Y, OBJ_Z + APPROACH_HEIGHT, 0.3)) {
         goto shutdown;
     }
    
-
     // 6. 配置位置上方へ移動
-    if (!moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.5)) {
+    // if (!moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.5)) {
+    //     goto shutdown;
+    // }
+    if (!moveToPositionConstrained(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.5)) {
         goto shutdown;
     }
 
     // 7. 配置位置へ降下
-    if (!moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z, 0.2)) {
+    // if (!moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z, 0.2)) {
+    //     goto shutdown;
+    // }
+    if (!moveToPositionConstrained(arm, PLACE_X, PLACE_Y, PLACE_Z, 0.2)) {
         goto shutdown;
     }
 
@@ -289,7 +317,8 @@ int main(int argc, char **argv) {
     RCLCPP_INFO(node->get_logger(), "配置完了。");
 
     // 9. 退避
-    moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.3);
+    // moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.3);
+    moveToPositionConstrained(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.3);
 
 shutdown:
     RCLCPP_INFO(node->get_logger(), "=== シーケンス終了 ===");
