@@ -1,7 +1,7 @@
 controller_manager:
   ros__parameters:
-    # 1000 Hz でアームの外乱に最速応答 (Classic Gazebo と同様)
-    update_rate: 1000
+    # シミュレーション物理ステップ (max_step_size=0.004 s = 250 Hz) に合わせる
+    update_rate: 250
     use_sim_time: true
 
     joint_state_broadcaster:

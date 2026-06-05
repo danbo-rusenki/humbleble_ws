@@ -85,6 +85,15 @@ aluminum peripherial evaluation case.
       </inertial>
     </link>
 
+    <!-- Ignition Gazebo (Ogre2) は DAE の Lambert マテリアルを自動適用しないため明示する -->
+    <gazebo reference="${name}_link">
+      <material>
+        <ambient>0.39 0.39 0.39 1</ambient>
+        <diffuse>0.39 0.39 0.39 1</diffuse>
+        <specular>0.1 0.1 0.1 1</specular>
+      </material>
+    </gazebo>
+
     <!-- Use the nominal extrinsics between camera frames if the calibrated extrinsics aren't being published. e.g. running the device in simulation  -->
     <xacro:if value="${use_nominal_extrinsics}">
       <!-- camera depth joints and links -->

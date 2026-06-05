@@ -9,22 +9,14 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>std_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
-  <depend>amir_interfaces</depend>
+  <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>behavior_tree_msgs</depend>
-  <depend>nav_msgs</depend>
-  <depend>Eigen3</depend>
-  <depend>tf2</depend>
-  <depend>tf2_geometry_msgs</depend>
-  <depend>line_msg</depend>
-  <depend>bebop_msgs</depend>
   <depend>control_msgs</depend>
-  <depend>trajectory_msgs</depend>
-  <!-- <depend>opencv</depend>
-  <depend>pcl</depend> -->
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_msgs</depend>
+  <depend>behavior_tree_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

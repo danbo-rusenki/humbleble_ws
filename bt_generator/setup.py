@@ -28,7 +28,6 @@ setup(
             'bt_commander = bt_generator.bt_commander:main',
             'bt_send_xml = bt_generator.bt_send_xml:main',
             'receive_send_xml = bt_generator.receive_send_xml:main',
-            'bt_nav_generator = bt_generator.bt_nav_generator:main',
             'bt_generator_service_bebop = bt_generator.bt_generator_service_bebop:main',
             'bt_generator_bebop_base = bt_generator.bt_generator_bebop_base:main'
         ],

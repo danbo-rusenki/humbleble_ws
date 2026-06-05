@@ -25,7 +25,7 @@ sudo apt update && sudo apt install -y ros-humble-gazebo-ros2-control ros-humble
 cd ~/ros2_humble_ws
 colcon build --symlink-install
 ```
-3. pythonファイルに実行権限を付与、ファイルのあるディレクトリに移動するか、ファイルの場所を指定してください。
+3. pythonファイルに実行権限を付与、ファイルのあるディレクトリに移動するか、ファイルの場所を指定してください。  ここやらなくてもいいかも〜;o;
 ```bash
 chmod +x rover_twist_relay.py
 
@@ -40,9 +40,9 @@ source install/setup.bash
 ros2 launch amir_gazebo gazebo_bringup.launch.py
 ```
 　箱を出現させる
-```bash
+```bash  10個出す
 source install/setup.bash 
-ros2 launch mecanumrover3_gazebo spawn_box.launch.py 
+ros2 launch mecanumrover3_gazebo spawn_10box.launch.py
 ```
 ```bash
 source install/setup.bash 
@@ -69,6 +69,10 @@ ros2 launch amir_moveit_config moveit_gazebo.launch.py
 ```bash
 source install/setup.bash 
 ros2 launch amir_operation pick_place_fix_launch.py 
+```
+```bash 10個ピック、障害物避けつつ
+source install/setup.bash 
+ros2 launch amir_operation pick_place_10_launch.py 
 ```
 
 5. nav2 

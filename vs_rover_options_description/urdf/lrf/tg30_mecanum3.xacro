@@ -1,4 +1,6 @@
 <robot name="lrf_tg30_mecanum3" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- 後部 LRF を有効にする場合は use_back_lrf:=true を渡す -->
+  <xacro:arg name="use_back_lrf" default="false" />
   <xacro:include filename="$(find vs_rover_options_description)/urdf/lrf/tg30_mecanum3.gazebo" />
 
 
@@ -42,6 +44,8 @@
     </collision>
   </link>
 
+  <!-- 後部 LRF: use_back_lrf:=true で復活 (デフォルト false = 無効) -->
+  <xacro:if value="$(arg use_back_lrf)">
   <joint name="back_lrf_joint" type="fixed">
     <parent link="base_link" />
     <child link="back_lrf_link" />
@@ -70,5 +74,6 @@
       </geometry>
     </collision>
   </link>
+  </xacro:if>
 
 </robot>

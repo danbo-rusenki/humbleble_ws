@@ -7,7 +7,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     bt_generator_node = Node(
-        package='failure_detection',
+        package='bt_generator',
         executable='bt_generator_service',
         name='bt_generator_service',
         namespace='robot1',

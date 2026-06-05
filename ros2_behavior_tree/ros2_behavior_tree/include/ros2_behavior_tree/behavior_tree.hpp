@@ -24,6 +24,7 @@
 #include "behaviortree_cpp_v3/xml_parsing.h"
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
 #include "behaviortree_cpp_v3/loggers/bt_file_logger.h"
+#include "behaviortree_cpp_v3/loggers/bt_cout_logger.h"
 #include <ros2_behavior_tree/bt_status_pub.hpp>
 #include "rclcpp/rclcpp.hpp"
 
@@ -86,6 +87,7 @@ protected:
   std::unique_ptr<BT::PublisherZMQ> groot_monitor_;
 
   std::unique_ptr<BT::FileLogger> file_logger_;
+  std::unique_ptr<BT::StdCoutLogger> cout_logger_;
 
   std::string filename_;
 

@@ -2,10 +2,9 @@
  * ROS 2 Humble / MoveIt2 向け Pick and Place
  * amir_mecanum3 (モバイルマニピュレーター) 対応版
  *
- * 【修正内容】:
- * 1. アプローチ/降下のみ Joint_5 拘束を適用。把持後は拘束なしで移動。
- * 2. グリッパーを段階的に閉じ接触検知 + PRELOAD で握力確保。
- * 3. OBJ_Z = spawn_box デフォルト z=0.05 (箱中心) に合わせた。
+ * 【機能】:
+ * spawn_multibox でスポーンされた複数の物体を順番に連続把持・配置する。
+ * OBJ_POSITIONS は spawn_multibox のデフォルト引数 (count=4, y=-0.2, y_step=0.15) と一致。
  */
 
 #include <rclcpp/rclcpp.hpp>
@@ -23,6 +22,7 @@
 #include <chrono>
 #include <cmath>
 #include <thread>
+#include <vector>
 
 using namespace std::chrono_literals;
 using MoveGroupInterface     = moveit::planning_interface::MoveGroupInterface;
@@ -37,16 +37,25 @@ using GripperClient          = rclcpp_action::Client<GripperCommand>;
 // アプローチ/降下時に固定する Joint_5 角度 [rad]
 const double FIXED_JOINT_5_VALUE = 0.0;
 
-// 物体情報 (spawn_box デフォルト: box 中心 z=0.05, size_z=0.10)
-const double OBJ_X = 0.5;
-const double OBJ_Y = -0.2;
-const double OBJ_Z = 0.07;          // 箱の中心高さ [m]
 const double APPROACH_HEIGHT = 0.15; // アプローチ上方オフセット [m]
 
-// 配置位置
-const double PLACE_X = 0.0;
-const double PLACE_Y = 0.4;
-const double PLACE_Z = 0.15;
+// 把持対象物体の位置リスト (spawn_multibox デフォルト: count=4, x=0.5, y=-0.2, y_step=0.15, z=0.05)
+// z は物体中心 0.05 + size_z/2 = 0.10 (グリッパーが掴む高さ)
+struct Pose3D { double x, y, z; };
+const std::vector<Pose3D> OBJ_POSITIONS = {
+    {0.5, -0.20, 0.08},
+    {0.5, -0.05, 0.08},
+    {0.5,  0.10, 0.08},
+    {0.5,  0.25, 0.08},
+};
+
+// 配置先リスト (物体同士が重ならないよう y を 0.15 ずつずらす)
+const std::vector<Pose3D> PLACE_POSITIONS = {
+    {-0.20, 0.40, 0.15},
+    {-0.05, 0.40, 0.15},
+    {0.10, 0.40, 0.15},
+    {0.25, 0.40, 0.15},
+};
 
 // グリッパー
 const double GRIPPER_OPEN  = -1.0;
@@ -248,6 +257,59 @@ bool moveToPositionFree(
 }
 
 // ───────────────────────────────────────────────────────────────
+// 単一物体の Pick & Place シーケンス
+// 失敗した場合は false を返す
+// ───────────────────────────────────────────────────────────────
+bool pickAndPlace(
+    rclcpp::Node::SharedPtr node,
+    MoveGroupInterface &arm,
+    GripperClient::SharedPtr gripper_client,
+    const Pose3D &obj,
+    const Pose3D &place,
+    size_t index)
+{
+    RCLCPP_INFO(node->get_logger(),
+        "--- [%zu] 物体 (%.2f, %.2f, %.2f) → 配置 (%.2f, %.2f, %.2f) ---",
+        index, obj.x, obj.y, obj.z, place.x, place.y, place.z);
+
+    // 1. グリッパーを開く
+    controlGripper(node, gripper_client, GRIPPER_OPEN);
+
+    // 2. アプローチ
+    if (!moveToPositionConstrained(arm, obj.x, obj.y, obj.z + APPROACH_HEIGHT, 0.5))
+        return false;
+
+    // 3. 降下
+    if (!moveToPositionConstrained(arm, obj.x, obj.y, obj.z, 0.2))
+        return false;
+
+    // 4. 把持
+    RCLCPP_INFO(node->get_logger(), "把持中（段階的グリッパー閉鎖）...");
+    closeGripperGradually(node, gripper_client, GRIPPER_CLOSE);
+
+    // 5. 持ち上げ
+    if (!moveToPositionConstrained(arm, obj.x, obj.y, obj.z + APPROACH_HEIGHT, 0.3))
+        return false;
+
+    // 6. 配置位置上方へ移動
+    if (!moveToPositionConstrained(arm, place.x, place.y, place.z + APPROACH_HEIGHT, 0.5))
+        return false;
+
+    // 7. 配置位置へ降下
+    if (!moveToPositionConstrained(arm, place.x, place.y, place.z, 0.2))
+        return false;
+
+    // 8. グリッパーを開いて開放
+    controlGripper(node, gripper_client, GRIPPER_OPEN);
+    RCLCPP_INFO(node->get_logger(), "[%zu] 配置完了。", index);
+
+    // 9. 退避
+    moveToPositionConstrained(arm, place.x, place.y, place.z + APPROACH_HEIGHT, 0.3);
+
+    return true;
+}
+
+// ───────────────────────────────────────────────────────────────
 // メインシーケンス
 // ───────────────────────────────────────────────────────────────
 int main(int argc, char **argv) {
@@ -266,62 +328,24 @@ int main(int argc, char **argv) {
 
     MoveGroupInterface arm(node, "arm");
     arm.setPoseReferenceFrame("base_footprint");
-    arm.setPlanningTime(30.0);        // 30s に延長してプラン失敗を減らす
-    arm.setNumPlanningAttempts(5);    // 複数回試行
+    arm.setPlanningTime(30.0);
+    arm.setNumPlanningAttempts(5);
 
-    RCLCPP_INFO(node->get_logger(), "=== Pick & Place 開始 ===");
+    const size_t total = std::min(OBJ_POSITIONS.size(), PLACE_POSITIONS.size());
+    RCLCPP_INFO(node->get_logger(), "=== 連続 Pick & Place 開始 (%zu 個) ===", total);
 
-    // 1. グリッパーを開く
-    controlGripper(node, gripper_client, GRIPPER_OPEN);
-
-    // 2. アプローチ (Joint_5 固定でアーム姿勢を安定させる)
-    if (!moveToPositionConstrained(arm, OBJ_X, OBJ_Y, OBJ_Z + APPROACH_HEIGHT, 0.5)) {
-        goto shutdown;
+    size_t success_count = 0;
+    for (size_t i = 0; i < total && rclcpp::ok(); ++i) {
+        if (pickAndPlace(node, arm, gripper_client, OBJ_POSITIONS[i], PLACE_POSITIONS[i], i)) {
+            ++success_count;
+        } else {
+            RCLCPP_WARN(node->get_logger(), "[%zu] Pick & Place 失敗。次の物体へスキップ。", i);
+        }
     }
 
-    // 3. 降下 (Joint_5 固定のまま物体高さへ)
-    if (!moveToPositionConstrained(arm, OBJ_X, OBJ_Y, OBJ_Z, 0.2)) {
-        goto shutdown;
-    }
+    RCLCPP_INFO(node->get_logger(),
+        "=== 全シーケンス終了: %zu / %zu 成功 ===", success_count, total);
 
-    // 4. 把持 (段階的グリッパー閉鎖 + 接触検知 + PRELOAD)
-    RCLCPP_INFO(node->get_logger(), "把持中（段階的グリッパー閉鎖）...");
-    closeGripperGradually(node, gripper_client, GRIPPER_CLOSE);
-
-    // 5. 持ち上げ (拘束なし。把持後は関節状態が変わるため Free で計画する)
-    // if (!moveToPositionFree(arm, OBJ_X, OBJ_Y, OBJ_Z + APPROACH_HEIGHT, 0.3)) {
-    //     goto shutdown;
-    // }
-    if (!moveToPositionConstrained(arm, OBJ_X, OBJ_Y, OBJ_Z + APPROACH_HEIGHT, 0.3)) {
-        goto shutdown;
-    }
-   
-    // 6. 配置位置上方へ移動
-    // if (!moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.5)) {
-    //     goto shutdown;
-    // }
-    if (!moveToPositionConstrained(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.5)) {
-        goto shutdown;
-    }
-
-    // 7. 配置位置へ降下
-    // if (!moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z, 0.2)) {
-    //     goto shutdown;
-    // }
-    if (!moveToPositionConstrained(arm, PLACE_X, PLACE_Y, PLACE_Z, 0.2)) {
-        goto shutdown;
-    }
-
-    // 8. グリッパーを開いて開放
-    controlGripper(node, gripper_client, GRIPPER_OPEN);
-    RCLCPP_INFO(node->get_logger(), "配置完了。");
-
-    // 9. 退避
-    // moveToPositionFree(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.3);
-    moveToPositionConstrained(arm, PLACE_X, PLACE_Y, PLACE_Z + APPROACH_HEIGHT, 0.3);
-
-shutdown:
-    RCLCPP_INFO(node->get_logger(), "=== シーケンス終了 ===");
     rclcpp::shutdown();
     spinner.join();
     return 0;

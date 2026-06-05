@@ -1,5 +1,0 @@
-nav_msgs/Path path
-
----
-string error_string
-int8 anomaly_score

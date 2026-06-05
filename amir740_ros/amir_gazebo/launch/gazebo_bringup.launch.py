@@ -13,6 +13,7 @@ from launch.actions import (
 from launch.event_handlers import OnProcessExit, OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import SetEnvironmentVariable
 from launch_ros.actions import Node, SetParameter
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
@@ -100,7 +101,22 @@ def generate_launch_description():
         executable="parameter_bridge",
         arguments=[
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
-            "/back_scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
+            # "/back_scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",  # 後部 LRF 無効化
+        ],
+        output="screen",
+    )
+
+    # D435 カメラブリッジ (Ignition rgbd_camera → ROS2)
+    # <topic>d435</topic> で publish される Ignition トピックを ROS2 へ変換
+    d435_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name="d435_bridge",
+        arguments=[
+            "/d435/image@sensor_msgs/msg/Image[gz.msgs.Image",
+            "/d435/depth_image@sensor_msgs/msg/Image[gz.msgs.Image",
+            "/d435/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            "/d435/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
         ],
         output="screen",
     )
@@ -195,6 +211,11 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        # EGL を NVIDIA GPU に固定 (Intel 統合 GPU の Mesa 未対応 PCI ID 警告を回避)
+        SetEnvironmentVariable("__EGL_VENDOR_LIBRARY_FILENAMES",
+                               "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"),
+        SetEnvironmentVariable("__NV_PRIME_RENDER_OFFLOAD", "1"),
+        SetEnvironmentVariable("__GLX_VENDOR_LIBRARY_NAME", "nvidia"),
         DeclareLaunchArgument("gui", default_value="true"),
         SetParameter(name="use_sim_time", value=True),
         robot_state_publisher,
@@ -202,6 +223,7 @@ def generate_launch_description():
         spawn_robot,
         clock_bridge,
         scan_bridge,
+        d435_bridge,
         rover_twist_relay,
         odom_tf_relay,
         jsb_after_spawn,

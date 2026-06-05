@@ -20,7 +20,6 @@ from behavior_tree_msgs.msg import NodeStatus
 from behavior_tree_msgs.srv import SetBlackBoard
 from behavior_tree_msgs.srv import CreateBT
 from behavior_tree_msgs.msg import BBPath
-from failure_detection_msgs.msg import Solution
 from rcl_interfaces.srv import SetParameters
 from rclpy.parameter import Parameter
 from .node_template import *
@@ -60,7 +59,6 @@ class BTGeneratorBase(Node):
         self.node_status_dict = {}  #   BTノードの状態の辞書
         self.solition_dict = {}
         self.execute_tree_done_event = Event()
-        self.solution_sub = self.create_subscription(Solution, 'bt_solution', self.solution_callback, 10)
         self.bb_client = self.create_client(SetBlackBoard, 'set_blackboard_' + self.bt_name)
 
         #   bt_executorにツリーに準備してもらうためのサービスクライアント（サーバーが複数のBTを実行するためには複数のアクション通信を用意する必要があるため）
@@ -70,13 +68,6 @@ class BTGeneratorBase(Node):
         # while not self.bb_client.wait_for_service(timeout_sec=1.0):
         #     self.get_logger().info('service not available, waiting again...')
        
-    def solution_callback(self, msg):
-        self.solition_dict[msg.bt_node_name] = msg.solutions    #   failure_detectionから失敗したノードの解決策候補を取得
-        #   BB保存
-        self.set_bb_dict(msg.bb_message)
-        self.set_bb_req(msg.bb_message)
-        # print(msg.solutions)
-
     #   BBを一括で辞書に保存
     def set_bb_dict(self, bb_message):
         for bb_pose in bb_message.poses:

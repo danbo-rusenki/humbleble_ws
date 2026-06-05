@@ -13,7 +13,7 @@ install(
 )
 
 install(
-  PROGRAMS scripts/odom_tf_relay.py
+  PROGRAMS scripts/odom_tf_relay.py scripts/sim_launch.sh
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -32,8 +32,6 @@ find_package(geometry_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(behavior_tree_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(line_msg REQUIRED)
-find_package(bebop_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 #find_package(realsense2_camera_msgs REQUIRED)
 find_package(darknet_ros_msgs REQUIRED)
@@ -88,7 +86,6 @@ set(dependencies
   rclcpp_action
   behavior_tree_msgs
   Eigen3
-  bebop_msgs
   sensor_msgs
   cv_bridge
   darknet_ros_msgs

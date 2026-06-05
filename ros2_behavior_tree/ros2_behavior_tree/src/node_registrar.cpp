@@ -44,17 +44,10 @@
 #include "ros2_behavior_tree/condition/is_hand_free_node.hpp"
 // #include "ros2_behavior_tree/action/place_node.hpp"
 // #include "ros2_behavior_tree/action/pick_node.hpp"
-#include "ros2_behavior_tree/action/get_obj_node.hpp"
-#include "ros2_behavior_tree/action/set_obj_cost_node.hpp"
 #include "ros2_behavior_tree/action/marker_publisher_node.hpp"
-#include "ros2_behavior_tree/condition/check_path_node.hpp"
-// #include "ros2_behavior_tree/action/set_multi_path.hpp"
 #include "ros2_behavior_tree/control/priority_fallback.hpp"
-// #include "ros2_behavior_tree/action/path_check_node.hpp"
 #include "ros2_behavior_tree/action/create_bt_gen_node.hpp"
 #include "ros2_behavior_tree/action/approach_node.hpp"
-// #include "ros2_behavior_tree/action/before_pick_node.hpp"
-// #include "ros2_behavior_tree/action/after_pick_node.hpp"
 #include "ros2_behavior_tree/decorator/once_node.hpp"
 #include "ros2_behavior_tree/action/camera_search.hpp"
 #include "ros2_behavior_tree/condition/check_help.hpp"
@@ -74,10 +67,6 @@
 #include "ros2_behavior_tree/condition/check_vel.hpp"
 #include "ros2_behavior_tree/action/calculate_place_posi.hpp"
 #include "ros2_behavior_tree/action/search_amir.hpp"
-
-// 亀山用！！！
-// #include "ros2_behavior_tree/action/calculate_and_receive_goal.hpp"
-// #include "ros2_behavior_tree/condition/receive_move_meca.hpp"
 
 ///////////////////
 
@@ -125,16 +114,9 @@ NodeRegistrar::RegisterNodes(BT::BehaviorTreeFactory & factory)
   // factory.registerNodeType<ros2_behavior_tree::PlaceNode>("Place");
   // factory.registerNodeType<ros2_behavior_tree::PickNode>("Pick");
   factory.registerNodeType<ros2_behavior_tree::MarkerPublisherNode>("MarkerPublish");
-  factory.registerNodeType<ros2_behavior_tree::GetObjNode>("GetObject");
-  factory.registerNodeType<ros2_behavior_tree::SetObjCostNode>("SetObjCost");
-  // factory.registerNodeType<ros2_behavior_tree::CheckPathNode>("CheckPath");
-  // factory.registerNodeType<ros2_behavior_tree::SetMultiPath>("SetMultiPath");
-  // factory.registerNodeType<ros2_behavior_tree::PathCheckNode>("PathCheck");
   factory.registerNodeType<ros2_behavior_tree::CreateBTGenNode>("CreateBTGen");
   factory.registerNodeType<ros2_behavior_tree::ApproachNode>("Approach");
   factory.registerNodeType<ros2_behavior_tree::PriorityFallbackNode>("PriorityFallback");
-  // factory.registerNodeType<ros2_behavior_tree::BeforePickNode>("BeforePick");
-  // factory.registerNodeType<ros2_behavior_tree::AfterPickNode>("AfterPick");
   factory.registerNodeType<ros2_behavior_tree::OnceNode>("Once");
   factory.registerNodeType<ros2_behavior_tree::CameraSearchNode>("CameraSearch");
   factory.registerNodeType<ros2_behavior_tree::CheckHelpNode>("Checkhelp");

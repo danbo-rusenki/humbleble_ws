@@ -6,7 +6,6 @@ from rclpy.node import Node
 # from behavior_tree_msgs.srv import GetBT
 from rclpy.action import ActionClient
 from behavior_tree_msgs.action import ExecuteTree
-from behavior_tree_msgs.action import SendGoal
 # from behavior_tree_msgs.srv import SetBlackBoard
 # from behavior_tree_msgs.msg import BBPose
 # from behavior_tree_msgs.msg import BBMessage
@@ -37,8 +36,7 @@ class BTGeneratorService(Node):
 
     def __init__(self):
         super().__init__('minimal_client_async')
-        self._action_client = ActionClient(self, SendGoal, 'send_goal')
-        self._execute_tree_client = ActionClient(self, ExecuteTree, 'execute_bt') #   ツリーをexecuterに送信するアクションクライアント
+        self._execute_tree_client = ActionClient(self, ExecuteTree, 'execute_bt')
  
 
 

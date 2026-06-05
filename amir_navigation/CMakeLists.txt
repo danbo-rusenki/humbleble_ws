@@ -20,8 +20,6 @@ find_package(Eigen3 REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(line_msg REQUIRED)
-find_package(bebop_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 #find_package(realsense2_camera_msgs REQUIRED)
 find_package(darknet_ros_msgs REQUIRED)
@@ -65,8 +63,6 @@ set(dependencies
   Eigen3
   tf2
   tf2_geometry_msgs
-  line_msg
-  bebop_msgs
   sensor_msgs
   cv_bridge
   #realsense2_camera_msgs

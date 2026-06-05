@@ -66,12 +66,13 @@ void BehaviorTree::update_xml(const std::string & bt_xml)
 {
   update_cnt_++;
   std::cout << "cc" << std::endl;
-  groot_monitor_.reset(); //  treeの更新より先にリセットする必要がある？
+  groot_monitor_.reset();
   status_pub_.reset();
   file_logger_.reset();
-  std::cout << "dd" << std::endl;
+  cout_logger_.reset();
   tree_.reset();
   tree_ = std::make_unique<BT::Tree>(factory_.createTreeFromText(bt_xml, blackboard_));
+  cout_logger_ = std::make_unique<BT::StdCoutLogger>(*tree_);
 
 
   // factory_.createTreeを使うと登録済みのxmlの変更ができないので没
@@ -137,8 +138,6 @@ void BehaviorTree::getStatus(behavior_tree_msgs::msg::BTStatus& bt_status)
 
 void BehaviorTree::executeTick(BT::NodeStatus &result, std::vector<BT::TreeNode::Ptr> &nodes)
 {
-  // result = tree_->rootNode()->executeTick();
-  BT::StdCoutLogger logger(*tree_); //ターミナルに表示?
   result = tree_->tickRoot();
   root_status_ = result;
   nodes = tree_->nodes;
@@ -146,7 +145,6 @@ void BehaviorTree::executeTick(BT::NodeStatus &result, std::vector<BT::TreeNode:
 
 BT::NodeStatus BehaviorTree::tickRoot()
 {
-  BT::StdCoutLogger logger(*tree_); //ターミナルに表示?
   return tree_->tickRoot();
 }
 
@@ -172,8 +170,6 @@ BehaviorTree::execute(
   // groot_monitor_ = std::make_unique<BT::PublisherZMQ>(&tree);
 
   
-  BT::StdCoutLogger logger(*tree_); //ターミナルに表示?
-
   // Set up a loop rate controller based on the desired tick period
   rclcpp::WallRate loop_rate(tick_period);
 

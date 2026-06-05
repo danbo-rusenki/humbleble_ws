@@ -41,15 +41,9 @@ class BTExecutorClass
       if (!node->has_parameter("bt_loop_duration")) node->declare_parameter("bt_loop_duration", 10);
       if (!node->has_parameter("wait_for_service_timeout")) node->declare_parameter("wait_for_service_timeout", 10);
       if (!node->has_parameter("default_server_timeout")) node->declare_parameter("default_server_timeout", 20);
-      if (!node->has_parameter("enable_groot_monitoring")) node->declare_parameter<bool>("enable_groot_monitoring", false);
-      if (!node->has_parameter("groot_zmq_publisher_port")) node->declare_parameter<int>("groot_zmq_publisher_port", 1666);
-      if (!node->has_parameter("groot_zmq_server_port")) node->declare_parameter<int>("groot_zmq_server_port", 1667);
       if (!node->has_parameter("plugin_lib_names")) node->declare_parameter<std::vector<std::string>>("plugin_lib_names", std::vector<std::string>(0,""));
       node->get_parameter("bt_loop_duration", bt_loop_duration_);
       node->get_parameter("default_server_timeout", default_server_timeout_);
-      node->get_parameter("enable_groot_monitoring", enable_groot_monitoring_);
-      node->get_parameter("groot_zmq_publisher_port", groot_zmq_publisher_port_);
-      node->get_parameter("groot_zmq_server_port", groot_zmq_server_port_);
       node->get_parameter("plugin_lib_names", plugin_lib_names_);
       node->get_parameter("wait_for_service_timeout", wait_for_service_timeout);
 
@@ -150,28 +144,6 @@ class BTExecutorClass
       blackboard_->set<std::chrono::milliseconds>("wait_for_service_timeout", std::chrono::milliseconds(wait_for_service_timeout));
     }
 
-    void timer_callback()
-    {
-      if(!bt_->set_tree) return;// treeがセットしてなければ終了
-
-      /*結果がまだならtickする*/
-      if(bt_root_status_ == BT::NodeStatus::IDLE || bt_root_status_ == BT::NodeStatus::RUNNING)
-      {
-        std::vector<BT::TreeNode::Ptr> bt_nodes;
-        bt_->executeTick(bt_root_status_, bt_nodes);// tick
-      }
-      else if (bt_root_status_ == BT::NodeStatus::FAILURE)
-      {
-        RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "BT root is FAILURE");
-        
-      }
-
-      bt_->getStatus(bt_status_); //  ノードの状態を取得
-
-      publisher_->publish(bt_status_); 
-    }
-
-
     void execute_cb()
     {
       RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "BT received");
@@ -188,7 +160,7 @@ class BTExecutorClass
 
       bt_root_status_ = BT::NodeStatus::RUNNING;
 
-      while(bt_root_status_ == BT::NodeStatus::IDLE || bt_root_status_ == BT::NodeStatus::RUNNING && rclcpp::ok())
+      while((bt_root_status_ == BT::NodeStatus::IDLE || bt_root_status_ == BT::NodeStatus::RUNNING) && rclcpp::ok())
       {
         //  アクティベートされてない場合は抜ける
         if (action_server_ == nullptr || !action_server_->is_server_active()) {
@@ -257,9 +229,9 @@ class BTExecutorClass
 
       bt_->update_xml(request->bt);  // BTのツリーを更新
       bt_->addStatusPub();  // BTの状態遷移をpublishする用
-      init_blackboard(); 
+      init_blackboard();
       bt_root_status_ = BT::NodeStatus::RUNNING;
-      response->behavior_tree;
+      response->behavior_tree = request->bt;
     }
 
     /*BlackBoard書き込み用サービスコールバック*/
@@ -290,60 +262,22 @@ class BTExecutorClass
 
   private:
     std::vector<std::string> plugin_lib_names_;
-    bool enable_groot_monitoring_;
     int bt_loop_duration_;
     int default_server_timeout_;
-    int groot_zmq_publisher_port_;
-    int groot_zmq_server_port_;
     int wait_for_service_timeout;
-    rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<behavior_tree_msgs::msg::BTStatus>::SharedPtr publisher_;
     rclcpp::Service<behavior_tree_msgs::srv::GetBT>::SharedPtr service_server_;
     rclcpp::Service<behavior_tree_msgs::srv::SetBlackBoard>::SharedPtr bb_server_;
-    // rclcpp_action::Server<ExecuteTree>::SharedPtr action_server_;
     std::unique_ptr<ActionServer> action_server_;
-    
     std::unique_ptr<ros2_behavior_tree::BehaviorTree> bt_;
     BT::NodeStatus bt_root_status_;
     behavior_tree_msgs::msg::BTStatus bt_status_;
-    // size_t count_;
-    // std::unique_ptr<std::thread> thread_;
     rclcpp::Node::SharedPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     BT::Blackboard::Ptr blackboard_;
-    bool tree_updated_;
     std::string bt_name_;
-    // rclcpp::Clock ros_clock_;
-
 };
-
-
-class TestClass
-{
-  using Action = behavior_tree_msgs::action::ExecuteTree;
-  using ActionServer = nav2_util::SimpleActionServer<Action>;
-  public:
-    TestClass(rclcpp::Node::SharedPtr node):node_(node)
-    {
-
-      /*tf関連*/
-      tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
-      auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
-        node_->get_node_base_interface(), node_->get_node_timers_interface());
-      tf_buffer_->setCreateTimerInterface(timer_interface);
-      tf_buffer_->setUsingDedicatedThread(true);
-      tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_, node_, false);
-    }
-  private:
-    rclcpp::Node::SharedPtr node_;
-    std::unique_ptr<ActionServer> action_server_;
-    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-    rclcpp::Publisher<behavior_tree_msgs::msg::BTStatus>::SharedPtr publisher_;
-    BT::Blackboard::Ptr blackboard_;
-};
-
 
 
 class CreateBTClass

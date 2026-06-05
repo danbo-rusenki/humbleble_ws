@@ -40,6 +40,8 @@
     </sensor>
   </gazebo>
 
+  <!-- 後部 LRF センサー: use_back_lrf と連動 -->
+  <xacro:if value="$(arg use_back_lrf)">
   <gazebo reference="back_lrf_link">
     <selfCollide>true</selfCollide>
     <sensor name="tg30_lidar_back" type="gpu_lidar">
@@ -71,5 +73,6 @@
       <ignition_frame_id>back_lrf_link</ignition_frame_id>
     </sensor>
   </gazebo>
+  </xacro:if>
 
 </robot>

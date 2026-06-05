@@ -18,9 +18,6 @@ find_package(example_interfaces REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
-find_package(observation_msgs REQUIRED)
-find_package(my_nav_msgs REQUIRED)
-find_package(failure_detection_msgs REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(amir_interfaces REQUIRED)
@@ -104,9 +101,6 @@ set(dependencies
   visualization_msgs
   builtin_interfaces
   nav2_behavior_tree
-  observation_msgs
-  my_nav_msgs
-  failure_detection_msgs
   nav2_util
   nav_msgs
   amir_interfaces
