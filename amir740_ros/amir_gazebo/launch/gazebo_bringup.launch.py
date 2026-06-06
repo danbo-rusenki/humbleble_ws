@@ -121,6 +121,7 @@ def generate_launch_description():
         output="screen",
     )
 
+
     # /rover_twist → /mecanum_drive_controller/cmd_vel 中継ノード
     # gz_ros2_control の <ros><remapping> は controller_manager に届かないため
     # 専用リレーノードで後方互換性を維持する

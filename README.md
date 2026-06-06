@@ -40,7 +40,8 @@ source install/setup.bash
 ros2 launch amir_gazebo gazebo_bringup.launch.py
 ```
 　箱を出現させる
-```bash  10個出す
+10個出す
+```bash  
 source install/setup.bash 
 ros2 launch mecanumrover3_gazebo spawn_10box.launch.py
 ```
@@ -70,7 +71,9 @@ ros2 launch amir_moveit_config moveit_gazebo.launch.py
 source install/setup.bash 
 ros2 launch amir_operation pick_place_fix_launch.py 
 ```
-```bash 10個ピック、障害物避けつつ
+
+10個ピック、障害物避けつつ
+```bash 
 source install/setup.bash 
 ros2 launch amir_operation pick_place_10_launch.py 
 ```
@@ -80,4 +83,20 @@ ros2 launch amir_operation pick_place_10_launch.py
 source install/setup.bash 
 ros2 launch mecanum_navigation2 bringup_launch.py
 ```
+6. action server 
+```bash
+source install/setup.bash 
+ros2 launch amir_operation pick_and_place_launch.py
+```
 
+7. bt send 
+```bash
+source install/setup.bash 
+ros2 launch bt_generator bt_send_xml_launch.py
+```
+
+8. bt exe
+```bash
+source install/setup.bash 
+ros2 launch ros2_behavior_tree bt_executor_launch.py
+```

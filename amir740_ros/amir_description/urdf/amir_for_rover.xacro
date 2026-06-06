@@ -27,9 +27,9 @@
     <material name="silver-amir"/>
   </visual>
   <collision>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.165" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://amir_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <box size="0.15 0.12 0.33"/>
     </geometry>
   </collision>
 </link>
@@ -53,9 +53,9 @@
     <material name="silver-amir"/>
   </visual>
   <collision>
-    <origin xyz="0.00 0.001523 0.097" rpy="0 0 0"/>
+    <origin xyz="0 0.001523 0.048" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://amir_description/meshes/link1_1.stl" scale="0.001 0.001 0.001"/>
+      <cylinder radius="0.055" length="0.10"/>
     </geometry>
   </collision>
 </link>
@@ -79,9 +79,9 @@
     <material name="silver-amir"/>
   </visual>
   <collision>
-    <origin xyz="0.0 0.001523 -0.0" rpy="0 0 0"/>
+    <origin xyz="0 0.155 0" rpy="1.5708 0 0"/>
     <geometry>
-      <mesh filename="package://amir_description/meshes/link2_1.stl" scale="0.001 0.001 0.001"/>
+      <cylinder radius="0.045" length="0.31"/>
     </geometry>
   </collision>
 </link>
@@ -105,9 +105,9 @@
     <material name="silver-amir"/>
   </visual>
   <collision>
-    <origin xyz="-0.0 -0.308477 0.0" rpy="0 0 0"/>
+    <origin xyz="0 0.155 0" rpy="1.5708 0 0"/>
     <geometry>
-      <mesh filename="package://amir_description/meshes/link3_1.stl" scale="0.001 0.001 0.001"/>
+      <cylinder radius="0.040" length="0.31"/>
     </geometry>
   </collision>
 </link>
@@ -131,9 +131,9 @@
     <material name="silver-amir"/>
   </visual>
   <collision>
-    <origin xyz="0.0 -0.618477 -0.0" rpy="0 0 0"/>
+    <origin xyz="0 0.020 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://amir_description/meshes/link4_1.stl" scale="0.001 0.001 0.001"/>
+      <box size="0.065 0.042 0.060"/>
     </geometry>
   </collision>
 </link>
