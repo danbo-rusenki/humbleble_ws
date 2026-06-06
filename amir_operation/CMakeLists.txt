@@ -14,6 +14,7 @@ find_package(control_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(moveit_msgs REQUIRED)
 find_package(behavior_tree_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 include_directories(
   include
@@ -35,11 +36,20 @@ add_executable(initial_posi_gz
   src/initial_posi_gz.cpp
 )
 
+add_executable(move_meca_server
+  src/move_meca_server.cpp
+)
+
+add_executable(place_server
+  src/place_server.cpp
+)
+
 set(dependencies
   rclcpp
   rclcpp_action
   sensor_msgs
   geometry_msgs
+  nav_msgs
   control_msgs
   moveit_ros_planning_interface
   moveit_msgs
@@ -50,12 +60,16 @@ ament_target_dependencies(jointfix ${dependencies})
 ament_target_dependencies(jointfix10 ${dependencies})
 ament_target_dependencies(pick_server ${dependencies})
 ament_target_dependencies(initial_posi_gz ${dependencies})
+ament_target_dependencies(move_meca_server ${dependencies})
+ament_target_dependencies(place_server ${dependencies})
 
 install(TARGETS
   jointfix
   jointfix10
   pick_server
   initial_posi_gz
+  move_meca_server
+  place_server
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch

@@ -17,6 +17,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(tf2_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -71,8 +72,11 @@ add_executable(convertpc_
 add_executable(compc_oct
  src/compc_oct.cpp)
 
+add_executable(gz_pose_filter
+ src/gz_pose_filter.cpp)
 
 set(dependencies
+  tf2_msgs
   tf2_geometry_msgs
   nav_msgs
   sensor_msgs
@@ -108,6 +112,7 @@ ament_target_dependencies(rgb_ali_ ${dependencies})
 ament_target_dependencies(align_pc ${dependencies})
 ament_target_dependencies(convertpc_ ${dependencies})
 ament_target_dependencies(compc_oct ${dependencies})
+ament_target_dependencies(gz_pose_filter ${dependencies})
 
 
 
@@ -119,6 +124,7 @@ install(TARGETS
     camera_to_amirbase
     convertpc_
     compc_oct
+    gz_pose_filter
     DESTINATION lib/${PROJECT_NAME})
 
 # Install launch files.

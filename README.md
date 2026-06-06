@@ -20,7 +20,17 @@ rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 2. ワークスペースをビルド
 ```bash
 
-sudo apt update && sudo apt install -y ros-humble-gazebo-ros2-control ros-humble-gazebo-ros-pkgs ros-humble-controller-manager ros-humble-joint-state-broadcaster ros-humble-velocity-controllers ros-humble-effort-controllers ros-humble-joint-trajectory-controller ros-humble-position-controllers ros-humble-robot-state-publisher ros-humble-xacro
+sudo apt update && sudo apt install -y \
+  ros-humble-gazebo-ros2-control \
+  ros-humble-gazebo-ros-pkgs \
+  ros-humble-controller-manager \
+  ros-humble-joint-state-broadcaster \
+  ros-humble-velocity-controllers \
+  ros-humble-effort-controllers \
+  ros-humble-joint-trajectory-controller \
+  ros-humble-position-controllers \
+  ros-humble-robot-state-publisher \
+  ros-humble-xacro
 
 cd ~/ros2_humble_ws
 colcon build --symlink-install
@@ -39,6 +49,22 @@ chmod +x joint_state_filter.py
 source install/setup.bash 
 ros2 launch amir_gazebo gazebo_bringup.launch.py
 ```
+倉庫
+```bash
+source install/setup.bash 
+ros2 launch amir_gazebo gazebo_bringup2.launch.py
+```
+壁
+```bash
+source install/setup.bash 
+ros2 launch amir_gazebo gazebo_bringup3.launch.py
+```
+```bash
+source install/setup.bash 
+ros2 launch mecanumrover3_gazebo spawn_koteibox.launch.py 
+```
+
+
 　箱を出現させる
 10個出す
 ```bash  
@@ -49,7 +75,7 @@ ros2 launch mecanumrover3_gazebo spawn_10box.launch.py
 source install/setup.bash 
 ros2 launch mecanumrover3_gazebo spawn_multibox.launch.py 
 ```
-　壁を出現させる
+　迷路を出現させる
 ```bash
 source install/setup.bash 
 ros2 launch mecanumrover3_gazebo spawn_wor.launch.py scale:=0.001
@@ -97,6 +123,13 @@ ros2 launch bt_generator bt_send_xml_launch.py
 
 8. bt exe
 ```bash
-source install/setup.bash 
+source install/setup.bash
 ros2 launch ros2_behavior_tree bt_executor_launch.py
 ```
+
+9. 座標確認
+```bash
+source install/setup.bash
+ros2 run my_utility gz_pose_filter 
+```
+

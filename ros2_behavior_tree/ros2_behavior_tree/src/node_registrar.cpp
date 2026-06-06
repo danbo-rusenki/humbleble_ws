@@ -58,6 +58,8 @@
 
 #include "ros2_behavior_tree/action/pick_amir.hpp"
 #include "ros2_behavior_tree/action/move_meca.hpp"
+#include "ros2_behavior_tree/action/receive_meca_goal.hpp"
+#include "ros2_behavior_tree/action/set_meca_goal.hpp"
 #include "ros2_behavior_tree/action/place_amir.hpp"
 // #include "ros2_behavior_tree/condition/after_pick.hpp"
 #include "ros2_behavior_tree/condition/check_grasp.hpp"
@@ -126,6 +128,8 @@ NodeRegistrar::RegisterNodes(BT::BehaviorTreeFactory & factory)
   factory.registerNodeType<ros2_behavior_tree::CheckOdomNode>("CheckOdom");
   factory.registerNodeType<ros2_behavior_tree::PickAmirNode>("PickAmir");
   factory.registerNodeType<ros2_behavior_tree::MoveMecaNode>("MoveMeca");
+  factory.registerNodeType<ros2_behavior_tree::ReceiveMecaGoalNode>("ReceiveMecaGoal");
+  factory.registerNodeType<ros2_behavior_tree::SetMecaGoalNode>("SetMecaGoal");
   factory.registerNodeType<ros2_behavior_tree::PlaceAmirNode>("PlaceAmir");
   // factory.registerNodeType<ros2_behavior_tree::AfterPickNode>("AfterPick");
   factory.registerNodeType<ros2_behavior_tree::CheckGraspNode>("CheckGrasp");

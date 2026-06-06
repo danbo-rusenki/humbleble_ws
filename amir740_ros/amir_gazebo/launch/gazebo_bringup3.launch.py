@@ -30,8 +30,10 @@ def generate_launch_description():
     gui = LaunchConfiguration("gui")
 
     amir_description_dir = get_package_share_directory("amir_description")
+    # amir_gazebo_dir = get_package_share_directory("amir_gazebo")
+    # world_file = os.path.join(amir_gazebo_dir, "worlds", "amir_world.sdf")
     amir_gazebo_dir = get_package_share_directory("amir_gazebo")
-    world_file = os.path.join(amir_gazebo_dir, "worlds", "amir_world.sdf")
+    world_file = os.path.join(amir_gazebo_dir, "worlds", "warehouse_world.sdf")
 
     arm_controllers_yaml = os.path.join(amir_gazebo_dir, "config", "arm_controllers.yaml")
 
@@ -122,16 +124,17 @@ def generate_launch_description():
     )
 
     # Gazebo 内全モデルの絶対位置ブリッジ (ground truth)
-    # /world/default/pose/info でロボット・物体の位置姿勢を取得可能
+    # /world/warehouse_world/pose/info でロボット・物体の位置姿勢を取得可能
     pose_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="pose_bridge",
         arguments=[
-            "/world/default/pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            "/world/warehouse_world/pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
         ],
         output="screen",
     )
+
 
     # /rover_twist → /mecanum_drive_controller/cmd_vel 中継ノード
     # gz_ros2_control の <ros><remapping> は controller_manager に届かないため

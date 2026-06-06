@@ -9,19 +9,17 @@ from launch_ros.actions import Node
 
 
 def _gen_sdf_and_spawn(context, *args, **kwargs):
-    entity = LaunchConfiguration('entity').perform(context)
+    base_entity = LaunchConfiguration('entity').perform(context)
     shape  = LaunchConfiguration('shape').perform(context)
 
-    x     = float(LaunchConfiguration('x').perform(context))
-    y     = float(LaunchConfiguration('y').perform(context))
-    z     = float(LaunchConfiguration('z').perform(context))
-    roll  = float(LaunchConfiguration('roll').perform(context))
-    pitch = float(LaunchConfiguration('pitch').perform(context))
-    yaw   = float(LaunchConfiguration('yaw').perform(context))
-    mass  = float(LaunchConfiguration('mass').perform(context))
+    # 固定のZ, 姿勢, 質量を取得
+    z      = float(LaunchConfiguration('z').perform(context))
+    roll   = float(LaunchConfiguration('roll').perform(context))
+    pitch  = float(LaunchConfiguration('pitch').perform(context))
+    yaw    = float(LaunchConfiguration('yaw').perform(context))
+    mass   = float(LaunchConfiguration('mass').perform(context))
 
-    # Ignition Gazebo は Classic Gazebo より摩擦計算が正確なため
-    # kp/kd は Classic 同等値で十分 (DART/ODE どちらでも機能する)
+    # Ignition Gazebo の摩擦・反発係数
     kp = 1e6
     kd = 1e3
     mu = 3.0
@@ -44,6 +42,7 @@ def _gen_sdf_and_spawn(context, *args, **kwargs):
           </contact>
         </surface>"""
 
+    # 形状ごとの慣性モーメント・ジオメトリ計算
     if shape == 'cylinder':
         radius = float(LaunchConfiguration('radius').perform(context))
         height = float(LaunchConfiguration('size_z').perform(context))
@@ -66,9 +65,28 @@ def _gen_sdf_and_spawn(context, *args, **kwargs):
             </box>"""
         link_name = 'box_link'
 
-    sdf = f'''<?xml version="1.0" ?>
+    actions = []
+    tmpdir = tempfile.mkdtemp(prefix='spawn_obj_')
+
+    # 出現させたい5個の固定座標をリストで定義 (x, y)
+    # ※お好みの位置に数値を書き換えてください
+    fixed_positions = [
+        # (1.0,  0.0), 
+        (1.5, 1.0),  
+        (2.0, 0.5),    
+        (2.0,  -0.5),
+        (1.5, -1.0)    
+    ]
+
+    # リストから1つずつ座標を取り出してエンティティを生成
+    for i, (current_x, current_y) in enumerate(fixed_positions):
+        # 名前を個別に設定
+        entity_name = f"{base_entity}_{i}"
+
+        # 個別のSDFを生成
+        sdf = f'''<?xml version="1.0" ?>
 <sdf version="1.8">
-  <model name="{entity}">
+  <model name="{entity_name}">
     <static>false</static>
     <link name="{link_name}">
       <inertial>
@@ -101,58 +119,60 @@ def _gen_sdf_and_spawn(context, *args, **kwargs):
   </model>
 </sdf>
 '''
+        sdf_path = os.path.join(tmpdir, f'{entity_name}.sdf')
+        with open(sdf_path, 'w') as f:
+            f.write(sdf)
 
-    tmpdir = tempfile.mkdtemp(prefix='spawn_obj_')
-    sdf_path = os.path.join(tmpdir, f'{entity}.sdf')
-    with open(sdf_path, 'w') as f:
-        f.write(sdf)
+        # 既存モデルの削除コマンド
+        delete_cmd = ExecuteProcess(
+            cmd=[
+                'ign', 'service',
+                '-s', '/world/default/remove',
+                '--reqtype', 'ignition.msgs.Entity',
+                '--reptype', 'ignition.msgs.Boolean',
+                '--timeout', '1000',
+                '--req', f'name: "{entity_name}" type: MODEL',
+            ],
+            output='log',
+        )
 
-    # Ignition Gazebo: ign service で既存モデルを削除 (world 名は amir_world.sdf の name="default")
-    delete_cmd = ExecuteProcess(
-        cmd=[
-            'ign', 'service',
-            '-s', '/world/default/remove',
-            '--reqtype', 'ignition.msgs.Entity',
-            '--reptype', 'ignition.msgs.Boolean',
-            '--timeout', '1000',
-            '--req', f'name: "{entity}" type: MODEL',
-        ],
-        output='log',
-    )
+        # 新規モデルのスポーンノード
+        spawn_node = Node(
+            package='ros_gz_sim',
+            executable='create',
+            arguments=[
+                '-file', sdf_path,
+                '-name', entity_name,
+                '-x', str(current_x), '-y', str(current_y), '-z', str(z),
+                '-R', str(roll), '-P', str(pitch), '-Y', str(yaw),
+                '-allow_renaming', 'false',
+            ],
+            output='screen',
+        )
 
-    # Ignition Gazebo: ros_gz_sim create でスポーン
-    spawn_node = Node(
-        package='ros_gz_sim',
-        executable='create',
-        arguments=[
-            '-file', sdf_path,
-            '-name', entity,
-            '-x', str(x), '-y', str(y), '-z', str(z),
-            '-R', str(roll), '-P', str(pitch), '-Y', str(yaw),
-            '-allow_renaming', 'false',
-        ],
-        output='screen',
-    )
+        # アクションリストに追加（各オブジェクトの生成タイミングを少しずらして負荷を軽減）
+        actions.extend([
+            delete_cmd,
+            TimerAction(period=0.5 + (i * 0.1), actions=[spawn_node]),
+        ])
 
-    return [
-        delete_cmd,
-        TimerAction(period=0.5, actions=[spawn_node]),
-    ]
+    return actions
 
 
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('entity', default_value='target_obj'),
-        DeclareLaunchArgument('shape',  default_value='box', description="'cylinder' or 'box'"),
-        DeclareLaunchArgument('x',     default_value='0.4'),
-        DeclareLaunchArgument('y',     default_value='0.0'),
+        DeclareLaunchArgument('shape',  default_value='cylinder', description="'cylinder' or 'box'"),
+        
+        # 座標が固定されたため、ランダム用の引数（x_min, countなど）は削除しています
+        
         DeclareLaunchArgument('z',     default_value='0.05'),
         DeclareLaunchArgument('roll',  default_value='0.0'),
         DeclareLaunchArgument('pitch', default_value='0.0'),
         DeclareLaunchArgument('yaw',   default_value='0.0'),
         DeclareLaunchArgument('radius',  default_value='0.025'),
         DeclareLaunchArgument('size_z',  default_value='0.10'),
-        DeclareLaunchArgument('size_x',  default_value='0.05'),
+        DeclareLaunchArgument('size_x',  default_value='0.05'), 
         DeclareLaunchArgument('size_y',  default_value='0.05'),
         DeclareLaunchArgument('mass',    default_value='0.1'),
 

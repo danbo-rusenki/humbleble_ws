@@ -30,8 +30,11 @@ def generate_launch_description():
     gui = LaunchConfiguration("gui")
 
     amir_description_dir = get_package_share_directory("amir_description")
+    # amir_gazebo_dir = get_package_share_directory("amir_gazebo")
+    # world_file = os.path.join(amir_gazebo_dir, "worlds", "amir_world.sdf")
     amir_gazebo_dir = get_package_share_directory("amir_gazebo")
-    world_file = os.path.join(amir_gazebo_dir, "worlds", "amir_world.sdf")
+    # world_file = os.path.join(amir_gazebo_dir, "worlds", "warehouse_world.sdf")
+    world_file = os.path.join(amir_gazebo_dir, "worlds", "husky_depot.sdf")
 
     arm_controllers_yaml = os.path.join(amir_gazebo_dir, "config", "arm_controllers.yaml")
 
@@ -122,13 +125,13 @@ def generate_launch_description():
     )
 
     # Gazebo 内全モデルの絶対位置ブリッジ (ground truth)
-    # /world/default/pose/info でロボット・物体の位置姿勢を取得可能
+    # /world/world_demo/pose/info でロボット・物体の位置姿勢を取得可能
     pose_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="pose_bridge",
         arguments=[
-            "/world/default/pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            "/world/world_demo/pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
         ],
         output="screen",
     )
