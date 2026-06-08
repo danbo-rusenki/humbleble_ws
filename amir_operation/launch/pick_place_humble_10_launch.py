@@ -1,15 +1,6 @@
-"""
-pick_place_hum 用 launch ファイル
-
-MoveGroupInterface クライアントノードに robot_description_kinematics を渡すことで
-"No kinematics plugins defined" 警告を解消し、setStartStateToCurrentState() などが
-クライアント側で正しく動作するようにする。
-
-使用方法:
-  ros2 launch amir_operation pick_place_hum_launch.py
-"""
-
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from moveit_configs_utils import MoveItConfigsBuilder
 
@@ -20,19 +11,31 @@ def generate_launch_description():
         .robot_description(file_path="config/amir_mecanum3.urdf.xacro")
         .robot_description_semantic(file_path="config/amir_mecanum3.srdf")
         .robot_description_kinematics(file_path="config/kinematics.yaml")
+        .planning_pipelines(pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"])
         .to_moveit_configs()
+    )
+
+    condition_id_arg = DeclareLaunchArgument(
+        "condition_id",
+        default_value="cond_single",
+        description="実験条件ID（CSVのcondition_id列に記録される）",
     )
 
     pick_place_node = Node(
         package="amir_operation",
-        executable="jointfix",
+        executable="pick_place_humble_10",
         output="screen",
         parameters=[
             moveit_config.robot_description,
             moveit_config.robot_description_semantic,
             moveit_config.robot_description_kinematics,
+            moveit_config.planning_pipelines,
             {"use_sim_time": True},
+            {"condition_id": LaunchConfiguration("condition_id")},
         ],
     )
 
-    return LaunchDescription([pick_place_node])
+    return LaunchDescription([
+        condition_id_arg,
+        pick_place_node,
+    ])
