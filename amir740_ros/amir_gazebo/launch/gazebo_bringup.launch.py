@@ -115,7 +115,7 @@ def generate_launch_description():
         arguments=[
             "/d435/image@sensor_msgs/msg/Image[gz.msgs.Image",
             "/d435/depth_image@sensor_msgs/msg/Image[gz.msgs.Image",
-            "/d435/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
+            # "/d435/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked",
             "/d435/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
         ],
         output="screen",
@@ -236,7 +236,7 @@ def generate_launch_description():
         clock_bridge,
         scan_bridge,
         d435_bridge,
-        pose_bridge,
+        # pose_bridge,
         rover_twist_relay,
         odom_tf_relay,
         jsb_after_spawn,
