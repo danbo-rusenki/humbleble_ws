@@ -130,28 +130,29 @@ controller_server:
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.25
 
-    # DWB with full holonomic (mecanum) motion
+    # DWB for a NON-holonomic skid-steer base (wheels are cylinders, not mecanum rollers):
+    # FORWARD + theta only. No lateral (Y) motion (cylinder wheels scrub/slip), and no
+    # reverse — the LiDAR faces forward only, so backing up would drive blind. The robot
+    # rotates in place to face the path, then drives forward (PathAlign/GoalAlign strengthened).
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: -0.065
-      min_vel_x: -0.0
-      # min_vel_y: -0.13
+      min_vel_x: 0.0        # forbid reverse: only drive forward (front-facing LiDAR)
       max_vel_x: 0.18
-      # max_vel_y: 0.08
-      max_vel_y: 0.0
-      max_vel_theta: 0.5
+      min_vel_y: 0.0
+      max_vel_y: 0.0        # no strafing for cylinder wheels
+      max_vel_theta: 1.0    # was 0.5 → robot could barely rotate
       min_speed_xy: 0.0
-      max_speed_xy: 0.13
+      max_speed_xy: 0.18    # match max_vel_x (was 0.13, which throttled forward speed)
       min_speed_theta: 0.0
       acc_lim_x: 1.5
-      acc_lim_y: 0.5
+      acc_lim_y: 0.0        # no lateral accel
       acc_lim_theta: 3.2
       decel_lim_x: -1.5
-      decel_lim_y: -0.5
+      decel_lim_y: 0.0
       decel_lim_theta: -3.2
       vx_samples: 20
-      vy_samples: 10
+      vy_samples: 1         # no Y motion → sampling Y is wasted
       vtheta_samples: 20
       sim_time: 1.7
       linear_granularity: 0.05
@@ -163,13 +164,12 @@ controller_server:
       stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
       BaseObstacle.scale: 0.02
-      # BaseObstacle.scale: 20.0
-      # PathAlign.scale: 10.0
-      PathAlign.scale: 25.0
+      # PathAlign/GoalAlign raised: strongly prefer trajectories whose heading follows the
+      # path, so the robot turns to face its direction of travel instead of arcing/reversing.
+      PathAlign.scale: 64.0
       PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 15.0
+      GoalAlign.scale: 32.0
       GoalAlign.forward_point_distance: 0.1
-      # PathDist.scale: 32.0
       PathDist.scale: 20.0
       GoalDist.scale: 24.0
       # GoalDist.scale: 10.0
@@ -191,35 +191,30 @@ local_costmap:
   local_costmap:
     ros__parameters:
       use_sim_time: True
-      update_frequency: 5.0
+      # 10 Hz update: clears swept free space faster during rotation so odom-drift
+      # phantoms don't linger and block FollowPath.
+      update_frequency: 10.0
       publish_frequency: 2.0
       global_frame: odom
       robot_base_frame: base_footprint
       rolling_window: true
-      # width: 3
-      # height: 3
-      width: 5
-      height: 5
+      # 3x3 window (was 5x5): with a front-only LiDAR, phantom obstacles created by
+      # rotation slip fall behind the robot where they can't be raytrace-cleared; a smaller
+      # rolling window lets them roll off quickly instead of blocking the local plan.
+      width: 3
+      height: 3
       resolution: 0.05
       footprint: "[[0.22, -0.22], [0.22, 0.22], [-0.22, 0.22], [-0.22, -0.22]]"
       track_unknown_space: false
+      # back_scan source removed: the rear LRF is disabled in all gazebo launches
+      # ("後部 LRF 無効化"), so /back_scan is never published.
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan back_scan
+        observation_sources: scan
         scan:
           topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-        back_scan:
-          topic: /back_scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -258,37 +253,17 @@ global_costmap:
       resolution: 0.05
       footprint: "[[0.22, -0.22], [0.22, 0.22], [-0.22, 0.22], [-0.22, -0.22]]"
       track_unknown_space: false
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      # obstacle_layer removed: with slam_toolbox the /map static_layer is the source of
+      # truth. Marking raw /scan into the map frame here caused doubled/smeared walls during
+      # in-place rotation (slip + map->odom TF lag projects pre/post-rotation scans separately).
+      # Real-time obstacle avoidance is still handled by the local_costmap (odom frame).
+      plugins: ["static_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         enabled: True
         map_subscribe_transient_local: True
         subscribe_to_updates: true
         map_topic: /map
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan back_scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 8.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 6.0
-          obstacle_min_range: 0.0
-        back_scan:
-          topic: /back_scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 8.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 6.0
-          obstacle_min_range: 0.0
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True
@@ -360,12 +335,12 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    # max_velocity: [0.13, 0.13, 0.5]
-    # min_velocity: [-0.13, -0.13, -0.5]
-    max_velocity: [0.13, 0.0, 0.5]
-    min_velocity: [-0.13, -0.0, -0.5]
-    max_accel: [2.5, 0.5, 3.2]
-    max_decel: [-2.5, -0.5, -3.2]
+    # [x, y, theta] — y kept 0 (no strafing). x min 0.0: forbid reverse (forward-only,
+    # front-facing LiDAR). theta both directions for in-place rotation to face the path.
+    max_velocity: [0.18, 0.0, 1.0]
+    min_velocity: [0.0, 0.0, -1.0]
+    max_accel: [2.5, 0.0, 3.2]
+    max_decel: [-2.5, 0.0, -3.2]
     odom_topic: "odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]

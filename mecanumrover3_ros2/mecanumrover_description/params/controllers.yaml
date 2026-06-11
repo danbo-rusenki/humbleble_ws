@@ -7,8 +7,7 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    # Classic Gazebo の libgazebo_ros_diff_drive.so を置き換え
-    # gz_ros2_control の速度 command_interface でホイールを制御
+    # rover_twist_relay_ign.py が /mecanum_drive_controller/reference_unstamped に publish するため
     mecanum_drive_controller:
       type: mecanum_drive_controller/MecanumDriveController
 
@@ -36,12 +35,9 @@ joint_state_broadcaster:
 
 mecanum_drive_controller:
   ros__parameters:
-    # use_stamped_vel: false → ~/reference_unstamped (Twist) を購読 (デフォルト true = TwistStamped)
-    # rover_twist_relay_ign が /rover_twist (Twist) を reference_unstamped へ転送するためここを false にする
     use_stamped_vel: false
     reference_timeout: 1.0
 
-    # ホイールジョイント名 (mecanum3.xacro の joint 名と一致させる)
     front_left_wheel_command_joint_name: "front_left_joint"
     front_right_wheel_command_joint_name: "front_right_joint"
     rear_left_wheel_command_joint_name: "back_left_joint"
@@ -49,12 +45,13 @@ mecanum_drive_controller:
 
     kinematics:
       base_frame_offset: { x: 0.0, y: 0.0, theta: 0.0 }
-      # ホイール半径 (mecanum3.xacro の cylinder radius=0.076 と一致)
       wheels_radius: 0.076
-      # lx + ly: Classic Gazebo の wheel_separation=0.24 から lx=ly=0.12 として計算
       sum_of_robot_center_projection_on_X_Y_axis: 0.24
 
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
-    enable_odom_tf: true
+    # Disabled: the odom->base_footprint TF now comes from the ground-truth
+    # OdometryPublisher plugin (mecanum3.gazebo). Wheel-encoder odometry slips during
+    # in-place rotation (4 cylinder wheels scrub) and corrupted the SLAM map.
+    enable_odom_tf: false
     publish_rate: 50.0

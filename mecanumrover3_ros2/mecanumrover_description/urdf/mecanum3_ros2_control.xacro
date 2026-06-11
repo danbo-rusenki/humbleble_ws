@@ -4,13 +4,11 @@
   <ros2_control name="MecanumSystem" type="system">
 
     <hardware>
-      <!-- Ignition Gazebo hardware plugin (matches gz_ros2_control-system in mecanum3.gazebo) -->
+      <!-- Ignition Gazebo hardware plugin -->
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
 
-    <!-- Wheel joints: velocity COMMAND interfaces required by mecanum_drive_controller.
-         Classic Gazebo used libgazebo_ros_diff_drive.so which bypassed ros2_control.
-         In Ignition, mecanum_drive_controller drives the wheels via these interfaces. -->
+    <!-- Wheel joints: velocity COMMAND interfaces for mecanum_drive_controller -->
     <joint name="front_left_joint">
       <command_interface name="velocity">
         <param name="min">-20.0</param>
