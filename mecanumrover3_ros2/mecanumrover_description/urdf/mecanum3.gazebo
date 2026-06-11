@@ -9,9 +9,26 @@
     <plugin filename="gz_ros2_control-system"
             name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>$(find mecanumrover_description)/params/controllers.yaml</parameters>
-      <ros>
-        <remapping>/mecanum_drive_controller/odometry:=/odom</remapping>
-      </ros>
+      <!-- 車輪エンコーダ odom に /odom を占有させない。
+           /odom は下の OdometryPublisher (真値) が発行する。 -->
+    </plugin>
+  </gazebo>
+
+  <!-- Ground-truth odometry (simulation only).
+       本物メカナム (バレルローラー) でも横移動・旋回時のローラ滑りで車輪 odom は
+       わずかにドリフトする。シミュレータの真値 world pose から /odom と
+       odom→base_footprint TF (/odom/tf) を発行し、nav2 にシミュレータ絶対座標を渡す。
+       ロボットは world 原点にスポーンするため odom フレーム ≒ 絶対座標。
+       gz_version=6 (Fortress) のプラグイン名を使用。
+       amir_gazebo/gazebo_bringup.launch.py の odom_bridge で ROS2 へブリッジ。 -->
+  <gazebo>
+    <plugin filename="ignition-gazebo-odometry-publisher-system"
+            name="ignition::gazebo::systems::OdometryPublisher">
+      <odom_publish_frequency>50</odom_publish_frequency>
+      <odom_topic>/odom</odom_topic>
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <tf_topic>/odom/tf</tf_topic>
     </plugin>
   </gazebo>
 

@@ -56,5 +56,8 @@ mecanum_drive_controller:
 
     base_frame_id: "base_footprint"
     odom_frame_id: "odom"
-    enable_odom_tf: true
+    # odom→base_footprint TF は真値 OdometryPublisher プラグイン (mecanum3.gazebo) が発行する。
+    # メカナムの 4 つの固定円筒ホイールは旋回・横移動でスリップし、車輪エンコーダ
+    # オドメトリの TF が SLAM 地図を破綻させるため、ここでは TF 発行を無効化する。
+    enable_odom_tf: false
     publish_rate: 50.0

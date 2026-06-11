@@ -11,7 +11,6 @@ mkdir -p ~/ros2_humble_ws/src
 cd ~/ros2_humble_ws/src
 
 git clone https://github.com/danbo-rusenki/humbleble_ws.git -b sim-ign
-git clone https://github.com/ros-controls/gz_ros2_control.git -b humble
 
 rosdep install -r --from-paths . --ignore-src --rosdistro humble -y
 
@@ -30,7 +29,8 @@ sudo apt update && sudo apt install -y \
   ros-humble-joint-trajectory-controller \
   ros-humble-position-controllers \
   ros-humble-robot-state-publisher \
-  ros-humble-xacro
+  ros-humble-xacro \
+  ros-humble-gz-ros2-control
 
 cd ~/ros2_humble_ws
 colcon build --symlink-install
