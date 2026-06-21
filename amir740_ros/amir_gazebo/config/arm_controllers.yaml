@@ -34,6 +34,22 @@ arm_controller:
       Joint_4: {p: 15.0, i: 1.5, d: 3.0, i_clamp: 5.0}
       Joint_5: {p: 8.0,  i: 0.8, d: 1.5, i_clamp: 2.0}
 
+# VR/MR テレオペ用ストリーミングコントローラ (MoveIt Servo の出力先)
+# arm_controller(JTC) と同じ position command interface を奪い合うため
+# 同時に active にはできない。spawner で --inactive 起動し、
+# Servo 運用時に switch_controllers で arm_controller と切り替える。
+#   有効化: ros2 control switch_controllers --deactivate arm_controller --activate forward_position_controller
+#   復帰:   ros2 control switch_controllers --deactivate forward_position_controller --activate arm_controller
+forward_position_controller:
+  ros__parameters:
+    joints:
+      - Joint_1
+      - Joint_2
+      - Joint_3
+      - Joint_4
+      - Joint_5
+    interface_name: position
+
 gripper_controller:
   ros__parameters:
     joint: Gripper
