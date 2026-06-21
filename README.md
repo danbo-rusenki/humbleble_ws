@@ -162,6 +162,7 @@ ros2 control switch_controllers --deactivate arm_controller --activate forward_p
 ```
 
 4. 手先 Twist を流す (いずれか1つ。Servo は各ノードが自動で start する)
+  おすすめは d 
 
    a. 動作確認用 (正弦波 Twist を自動で publish)
    ```bash
@@ -208,7 +209,7 @@ ros2 control switch_controllers --deactivate arm_controller --activate forward_p
      別機体なら `-p xacro_path:=... -p srdf_path:=... -p group:=... -p tip_link:=...` で上書き。
      キーボード入力は `ros2 run` で前面実行すること(`ros2 launch` だと stdin が届かない)。
 
-5. 自律動作 (JTC) へ戻す
+6. 自律動作 (JTC) へ戻す
 ```bash
 source install/setup.bash
 ros2 control switch_controllers --deactivate forward_position_controller --activate arm_controller
