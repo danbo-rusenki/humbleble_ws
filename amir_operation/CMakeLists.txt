@@ -24,6 +24,13 @@ find_package(trajectory_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(shape_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(moveit_core REQUIRED)
+find_package(srdfdom REQUIRED)
+find_package(urdf REQUIRED)
+find_package(urdfdom REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 include_directories(
   include
@@ -59,6 +66,23 @@ add_executable(place_server
 
 add_executable(jointfix_cm
   src/jointfix_cm_pick_place.cpp
+)
+
+# VR/MR テレオペ (MoveIt Servo) 用ノード
+add_executable(servo_test_twist
+  src/servo_test_twist.cpp
+)
+
+add_executable(vr_twist_bridge
+  src/vr_twist_bridge.cpp
+)
+
+add_executable(servo_keyboard_twist
+  src/servo_keyboard_twist.cpp
+)
+
+add_executable(servo_keyboard_jog
+  src/servo_keyboard_jog.cpp
 )
 
 set(dependencies
@@ -113,6 +137,32 @@ ament_target_dependencies(jointfix_cm ${dependencies_cm})
 target_include_directories(jointfix_cm PUBLIC ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(jointfix_cm Eigen3::Eigen)
 
+set(dependencies_servo
+  rclcpp
+  geometry_msgs
+  std_msgs
+  std_srvs
+  tf2
+  tf2_geometry_msgs
+)
+ament_target_dependencies(servo_test_twist ${dependencies_servo})
+ament_target_dependencies(vr_twist_bridge ${dependencies_servo})
+ament_target_dependencies(servo_keyboard_twist ${dependencies_servo})
+
+ament_target_dependencies(servo_keyboard_jog
+  rclcpp
+  sensor_msgs
+  control_msgs
+  std_srvs
+  moveit_core
+  srdfdom
+  urdf
+  urdfdom
+  ament_index_cpp
+)
+target_include_directories(servo_keyboard_jog PUBLIC ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(servo_keyboard_jog Eigen3::Eigen)
+
 install(TARGETS
   jointfix
   jointfix10
@@ -122,9 +172,16 @@ install(TARGETS
   place_server
   #pick_place_humble_10
   jointfix_cm
+  servo_test_twist
+  vr_twist_bridge
+  servo_keyboard_twist
+  servo_keyboard_jog
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME})
+
+install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME})
 
 install(DIRECTORY include
