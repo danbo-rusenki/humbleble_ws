@@ -12,10 +12,9 @@ class RoverTwistRelay(Node):
         super().__init__('rover_twist_relay')
 
 
-        # Force use_sim_time=True
-        self.set_parameters([
-            Parameter('use_sim_time', Parameter.Type.BOOL, True)
-        ])
+        # use_sim_time は launch / CLI からのパラメータに従う (実機では false)。
+        # 以前はここで True を強制していたため実機でも sim 時刻を待ち続けて
+        # タイマが発火しない不具合があったので撤去。
 
 
         # Attach time source

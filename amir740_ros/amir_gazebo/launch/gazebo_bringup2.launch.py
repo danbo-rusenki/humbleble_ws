@@ -47,6 +47,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             xacro_file,
+            " sim:=true",
         ]),
         value_type=str,
     )

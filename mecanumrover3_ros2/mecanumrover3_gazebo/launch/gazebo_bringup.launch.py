@@ -99,7 +99,7 @@ def _create_urdf_and_rsp(context, *args, **kwargs):
 
     # Generate URDF file for Gazebo spawn
     gen = ExecuteProcess(
-        cmd=[FindExecutable(name="xacro"), xacro_file, "-o", urdf_path],
+        cmd=[FindExecutable(name="xacro"), xacro_file, "sim:=true", "-o", urdf_path],
         output="screen",
     )
 
@@ -112,7 +112,7 @@ def _create_urdf_and_rsp(context, *args, **kwargs):
         parameters=[
             {
                 "robot_description": Command(
-                    [FindExecutable(name="xacro"), " ", xacro_file]
+                    [FindExecutable(name="xacro"), " ", xacro_file, " sim:=true"]
                 ),
                 "use_sim_time": True,
             }

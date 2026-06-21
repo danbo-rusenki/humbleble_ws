@@ -1,10 +1,22 @@
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    
+
+    # Nav2(slam_toolbox / amcl) を併用する場合は map→odom はそちらが publish するため
+    # ここでは出さない (既定 false)。単体テレオプ等で map を固定したいときのみ true。
+    publish_map_odom = LaunchConfiguration('publish_map_odom')
+    declare_publish_map_odom = DeclareLaunchArgument(
+        'publish_map_odom', default_value='false',
+        description='static map→odom TF を出すか。Nav2併用時は false(既定)、'
+                    '単体テレオプ時のみ true。'
+    )
+
     # start_static_tf_node = 
     #       Node(
     #           package = 'tf2_ros',
@@ -16,15 +28,17 @@ def generate_launch_description():
               
               
     return LaunchDescription([
-        
+
+        declare_publish_map_odom,
+
         # Node(
         #     package='tf2_ros',
         #     executable='static_transform_publisher',
         #     arguments = ['0.0', '0.0', '0.0', '0.0', '0', '0', 'base_footprint', 'base_link'],
         #     # namespace='amir',
         #     # remappings=[('/tf_static', '/amir/tf_static')],
-        #     ),        
-        
+        #     ),
+
         Node(
             package='my_utility',
             executable='odom_tf2_broadcaster',
@@ -35,9 +49,11 @@ def generate_launch_description():
             # remappings=[('/tf', '/amir/tf')],
             ),
 
+        # Nav2(slam_toolbox/amcl) 併用時は map→odom が競合するため既定で出さない。
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
+            condition=IfCondition(publish_map_odom),
             arguments = ['0', '0', '0', '0', '0', '0', 'map', 'odom']),
 
         # Node(

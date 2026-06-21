@@ -2,8 +2,18 @@
 <robot name="mecanum3" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:include filename="$(find mecanumrover_description)/urdf/materials.xacro" />
-  <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3.gazebo" />
-  <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3_ros2_control.xacro" />
+
+  <!-- sim=true  : Ignition(Gazebo Sim) 用。gz_ros2_control プラグインと
+                   ホイール用 ros2_control / Gazebo センサ・プラグインを読み込む。
+       sim=false : 実機用。台車は外部 micro-ROS/serial ドライバが駆動するため
+                   gz_ros2_control を読み込まない (読み込むと実機の ros2_control_node が
+                   GazeboSimSystem プラグインを解決できず起動失敗する)。 -->
+  <xacro:arg name="sim" default="false"/>
+
+  <xacro:if value="$(arg sim)">
+    <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3.gazebo" />
+    <xacro:include filename="$(find mecanumrover_description)/urdf/mecanum3_ros2_control.xacro" />
+  </xacro:if>
 
   <xacro:include filename="$(find vs_rover_options_description)/urdf/lrf/tg30_mecanum3.xacro" />
 

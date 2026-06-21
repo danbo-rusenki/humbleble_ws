@@ -12,7 +12,7 @@ def generate_launch_description():
     slam_params = os.path.join(this_dir, 'config', 'mapper_params_online_async.yaml')
 
     return LaunchDescription([
-        DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('use_sim_time', default_value='false'),
         Node(
             package='slam_toolbox',
             executable='async_slam_toolbox_node',

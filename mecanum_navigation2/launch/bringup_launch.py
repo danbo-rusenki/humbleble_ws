@@ -43,8 +43,9 @@ def generate_launch_description():
         description='Whether to apply a namespace to the navigation stack'
     )
     declare_use_sim_time_cmd = DeclareLaunchArgument(
-        'use_sim_time', default_value='true',
-        description='Use simulation (Gazebo) clock if true'
+        'use_sim_time', default_value='false',
+        description='Use simulation (Gazebo) clock if true. '
+                    '実機は false (既定)。シミュレーションでは use_sim_time:=true を指定する。'
     )
     declare_params_file_cmd = DeclareLaunchArgument(
         'params_file',
