@@ -270,7 +270,7 @@ int main(int argc, char ** argv)
 
     rclcpp::NodeOptions options;
     options.automatically_declare_parameters_from_overrides(true);
-    options.parameter_overrides({{"use_sim_time", true}});
+    // use_sim_time は launch から渡す（実機=false / sim=true）
 
     auto node = std::make_shared<PickServer>(options);
 

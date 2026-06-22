@@ -34,6 +34,9 @@ def launch_setup(context, *args, **kwargs):
         )
         .robot_description_semantic(file_path="config/amir_mecanum3.srdf")
         .robot_description_kinematics(file_path="config/kinematics.yaml")
+        # 実機専用の速度制限（アーム関節の max_velocity を半分にしたもの）。
+        # sim 側 (moveit_gazebo.launch.py) は通常の joint_limits.yaml を使う。
+        .joint_limits(file_path="config/joint_limits_real.yaml")
         .planning_pipelines(pipelines=["ompl", "chomp", "pilz_industrial_motion_planner"])
         .to_moveit_configs()
     )

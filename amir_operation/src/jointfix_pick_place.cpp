@@ -316,7 +316,7 @@ int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
     rclcpp::NodeOptions node_options;
     node_options.automatically_declare_parameters_from_overrides(true);
-    node_options.parameter_overrides({{"use_sim_time", true}});
+    // use_sim_time は launch から渡す（実機=false / sim=true）
     auto node = rclcpp::Node::make_shared("fixed_j5_pick_place", node_options);
 
     rclcpp::executors::MultiThreadedExecutor executor;

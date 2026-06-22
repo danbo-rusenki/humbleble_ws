@@ -1,0 +1,67 @@
+# joint_limits_real.yaml — 実機専用の速度制限
+#
+# 実機でアームが素早く動くのを防ぐため、joint_limits.yaml(sim共通) から
+# アーム関節の max_velocity を半分に下げたもの。
+# move_group のトラジェクトリ時間パラメータ化で上限として効く
+# （cpp 側 setMaxVelocityScalingFactor は <=1.0 なのでこれが確実な上限になる）。
+# 実機 launch (amir_moveit_launch.py) のみがこのファイルを読む。sim は joint_limits.yaml のまま。
+
+default_velocity_scaling_factor: 0.1
+default_acceleration_scaling_factor: 0.1
+
+joint_limits:
+  Gripper:
+    has_velocity_limits: true
+    max_velocity: 1.0          # sim: 2.0
+    has_acceleration_limits: false
+    max_acceleration: 0.0
+  Joint_1:
+    has_velocity_limits: true
+    max_velocity: 0.5          # sim: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.5      # sim: 5.0
+  Joint_2:
+    has_velocity_limits: true
+    max_velocity: 0.5          # sim: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.5      # sim: 5.0
+  Joint_3:
+    has_velocity_limits: true
+    max_velocity: 0.5          # sim: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.5      # sim: 5.0
+  Joint_4:
+    has_velocity_limits: true
+    max_velocity: 0.5          # sim: 1.0
+    has_acceleration_limits: true
+    max_acceleration: 2.5      # sim: 5.0
+  Joint_5:
+    has_velocity_limits: true
+    max_velocity: 1.0          # sim: 2.0
+    has_acceleration_limits: true
+    max_acceleration: 4.0      # sim: 8.0
+  left_inner_back_joint:
+    has_velocity_limits: false
+    max_velocity: 0.0
+    has_acceleration_limits: false
+    max_acceleration: 0.0
+  left_inner_front_joint:
+    has_velocity_limits: false
+    max_velocity: 0.0
+    has_acceleration_limits: false
+    max_acceleration: 0.0
+  left_outer_back_joint:
+    has_velocity_limits: false
+    max_velocity: 0.0
+    has_acceleration_limits: false
+    max_acceleration: 0.0
+  right_inner_front_joint:
+    has_velocity_limits: false
+    max_velocity: 0.0
+    has_acceleration_limits: false
+    max_acceleration: 0.0
+  right_outer_back_joint:
+    has_velocity_limits: false
+    max_velocity: 0.0
+    has_acceleration_limits: false
+    max_acceleration: 0.0

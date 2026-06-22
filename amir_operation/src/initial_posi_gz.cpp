@@ -70,8 +70,9 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
   
   rclcpp::NodeOptions options;
+  // 実機用: use_sim_time は false（実機では /clock が無いため）
   options.parameter_overrides({
-    {"use_sim_time", true}
+    {"use_sim_time", false}
   });
 
   auto node = std::make_shared<JointTrajectoryPublisher>(options);

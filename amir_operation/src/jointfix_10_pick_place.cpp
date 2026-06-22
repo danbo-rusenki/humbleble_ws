@@ -354,7 +354,7 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
     rclcpp::NodeOptions opts;
     opts.automatically_declare_parameters_from_overrides(true);
-    opts.parameter_overrides({{"use_sim_time", true}});
+    // use_sim_time は launch から渡す（実機=false / sim=true）
     auto node = rclcpp::Node::make_shared("jointfix_10_pick_place", opts);
 
     rclcpp::executors::MultiThreadedExecutor executor;
