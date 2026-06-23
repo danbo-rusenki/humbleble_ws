@@ -15,6 +15,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "std_msgs/msg/int16_multi_array.hpp"
 
 
 using std::placeholders::_1;
@@ -34,6 +35,18 @@ public:
 
     subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
       "rover_odo", rclcpp::SensorDataQoS(), std::bind(&PubOdomNode::rover_odom_callback, this, _1));
+
+    // バッテリーの容量の確認のため追加 2024/12/26 chujo
+    subscription_b = this->create_subscription<std_msgs::msg::Int16MultiArray>(
+      "rover_sensor", rclcpp::SensorDataQoS(), std::bind(&PubOdomNode::rover_sensor_callback, this, _1));
+
+    // subscription_c = this->create_subscription<geometry_msgs::msg::Twist>(
+    //   "cmd_vel",10,std::bind(&PubOdomNode::cmdVelCallback, this, std::placeholders::_1)); 
+
+    subscription_c = this->create_subscription<geometry_msgs::msg::Twist>(
+      "cmd_vel_nav",10,std::bind(&PubOdomNode::cmdVelCallback, this, std::placeholders::_1)); 
+
+    publisher_c = this->create_publisher<geometry_msgs::msg::Twist>("/rover_twist", 10);
 
     // Initialize the transform broadcaster
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
@@ -59,6 +72,7 @@ private:
     msg.pose.pose.orientation = odom_quat;
 
     //set the velocity
+    // msg.child_frame_id = "base_link";
     msg.child_frame_id = "base_footprint";
     msg.twist.twist.linear.x = vx;
     msg.twist.twist.linear.y = vy;
@@ -89,6 +103,7 @@ private:
     // corresponding tf variables
     t.header.stamp = current_time;
     t.header.frame_id = "odom";
+    // t.child_frame_id = "base_link";
     t.child_frame_id = "base_footprint";
 
     t.transform.translation.x = x;
@@ -104,6 +119,39 @@ private:
     last_time = current_time;
   }
 
+  void rover_sensor_callback(const std::shared_ptr<std_msgs::msg::Int16MultiArray> msg)
+  {
+    // battery = msg->data;
+    // int bl = 20000;
+
+    // if (bl < std::data[])
+    // {
+    //   RCLCPP_INFO(this->get_logger(), "Sensor value at index %d is above the threshold: %d", , std::data[]);
+    // } 
+    auto data = msg->data;
+    RCLCPP_INFO(this->get_logger(), "Received data: ");
+    if (!data.empty()) {
+      int16_t s1 = data[1];
+      RCLCPP_INFO(this->get_logger(), "s1 value: %d", s1);
+    }
+
+  }
+
+  void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
+        // ここでcmd_velをそのままコピーして/rover_twistとして送信する
+        geometry_msgs::msg::Twist rover_twist_msg = *msg;
+
+        // 必要なら変換処理をここに追加する
+        // 例: スケーリングや軸の反転など
+        // rover_twist_msg.linear.x *= 1.0; // 必要に応じて変更
+
+        // パブリッシュ
+        publisher_c->publish(rover_twist_msg);
+        RCLCPP_INFO(this->get_logger(), "Forwarded Twist: linear.x=%.2f, angular.z=%.2f",
+                    rover_twist_msg.linear.x, rover_twist_msg.angular.z);
+    }
+
+
   void calculate_time()
   {
     last_time = current_time;
@@ -118,6 +166,8 @@ private:
   double odom_kvy = 1.0;
   double odom_kth = 1.0;
 
+  int battery = 0.0;
+
   rclcpp::Time current_time = this->get_clock()->now();
   rclcpp::Time last_time = this->get_clock()->now();
   geometry_msgs::msg::TransformStamped t;
@@ -130,6 +180,10 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr publisher_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;
+  rclcpp::Subscription<std_msgs::msg::Int16MultiArray>::SharedPtr subscription_b;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_c;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_c;
+
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 };
 
