@@ -1,0 +1,19 @@
+# MoveIt 3D perception (octomap) 設定
+# OccupancyMapMonitor が point_cloud_topic を購読し octomap を内部生成して
+# PlanningScene に貼る。octomap_frame / octomap_resolution は move_group の
+# 別パラメータ (moveit_gazebo.launch.py で設定)。
+#
+# point_cloud_topic は octomap_cloud_relay 経由の /moveit_cloud を使う:
+#   - frame_id が d435_depth_frame に補正済み (gz規約の90°倒れ対策)
+#   - relay の ON/OFF でセンサ入力を止められる
+sensors:
+  - depth_camera
+depth_camera:
+  sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+  point_cloud_topic: /moveit_cloud
+  max_range: 5.0
+  point_subsample: 1
+  padding_offset: 0.1
+  padding_scale: 1.0
+  max_update_rate: 1.0
+  filtered_cloud_topic: /move_group/filtered_cloud

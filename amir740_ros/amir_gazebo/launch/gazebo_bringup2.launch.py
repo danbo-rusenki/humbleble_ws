@@ -147,14 +147,23 @@ def generate_launch_description():
         parameters=[{"use_sim_time": True}],
     )
 
-    # odom TF リレー: ros2_controllers (Humble) は odom→base_footprint TF を
-    # /mecanum_drive_controller/tf_odometry に出力するため /tf に転送する
-    odom_tf_relay = Node(
-        package="amir_gazebo",
-        executable="odom_tf_relay.py",
-        name="odom_tf_relay",
-        output="screen",
+    # 真値オドメトリブリッジ (Ignition → ROS2)
+    # mecanum3.gazebo の OdometryPublisher プラグインがモデルの真値 world pose から
+    #   /odom (nav_msgs/Odometry) と odom→base_footprint TF (/odom/tf) を出力する。
+    # /odom/tf を /tf に転送し、スリップする車輪オドメトリ TF を置き換える。
+    # (旧 odom_tf_relay.py は controller の tf_odometry を流すだけで /odom を出さない。
+    #  TF が二重にならないよう odom_tf_relay は使わず odom_bridge に一本化する。)
+    odom_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name="odom_bridge",
+        arguments=[
+            "/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry",
+            "/odom/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+        ],
+        remappings=[("/odom/tf", "/tf")],
         parameters=[{"use_sim_time": True}],
+        output="screen",
     )
 
     # ── コントローラ起動 (OnProcessExit で順番に起動) ──────────────────
@@ -241,7 +250,7 @@ def generate_launch_description():
         d435_bridge,
         pose_bridge,
         rover_twist_relay,
-        odom_tf_relay,
+        odom_bridge,
         jsb_after_spawn,
         arm_after_jsb,
         gripper_after_arm,

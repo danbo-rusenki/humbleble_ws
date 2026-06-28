@@ -1,118 +1,187 @@
+// =============================================================================
+//  convertpc_  : 深度画像 → 整列(ordered)PointCloud2 変換ノード
+//
+//  ★★★ シミュレータ(ign-gazebo)用に変更済み ★★★
+//   - 既定の購読トピックを sim の D435 ブリッジ
+//       depth : /d435/depth_image   (ign rgbd_camera = 32FC1 / メートル単位)
+//       info  : /d435/camera_info
+//     に変更（実機RealSense用の /camera/camera/aligned_depth_to_color/... から差替え）。
+//   - 深度エンコーディングを自動判定し、32FC1(m) と 16UC1(mm) の両方に対応。
+//     → sim(32FC1) でも実機(16UC1) でもそのまま動く。
+//   - トピック名は ROS パラメータ化（depth_topic / info_topic / pub_topic）。
+//     実機で使うときは launch / --ros-args で実機トピックを渡せばよい。
+// =============================================================================
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 #include <cv_bridge/cv_bridge.h>
-
-// 同期用
-#include <message_filters/subscriber.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <message_filters/synchronizer.h>
-
-// PCL
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-
-// OpenCV
 #include <opencv2/opencv.hpp>
 
-class VerifyConvertedPCL : public rclcpp::Node
+// メッセージ生成用
+#include <sensor_msgs/point_cloud2_iterator.hpp>
+
+class DepthToPointCloud : public rclcpp::Node
 {
 public:
-    VerifyConvertedPCL() : Node("verify_converted_pcl")
+    DepthToPointCloud() : Node("depth_to_pcl_converter")
     {
-        // QoS設定 (Reliable推奨)
+        // QoS設定 (ros_gz_bridge は既定で Reliable のため Reliable に合わせる)
         rclcpp::QoS qos_reliable(10);
         qos_reliable.reliable();
         qos_reliable.durability_volatile();
 
-        // トピック名
-        // RGBはRealSenseから直接、PCLは自作の変換ノードから受け取る
-        std::string rgb_topic = "/camera/camera/color/image_raw";
-        std::string pcl_topic = "/converted_pointcloud"; 
+        // トピック名はパラメータ化。既定値は【シミュレータ用】。
+        depth_topic_ = this->declare_parameter<std::string>("depth_topic", "/d435/depth_image");
+        info_topic_  = this->declare_parameter<std::string>("info_topic",  "/d435/camera_info");
+        pub_topic_   = this->declare_parameter<std::string>("pub_topic",   "/converted_pointcloud");
 
-        // message_filters設定
-        rgb_sub_.subscribe(this, rgb_topic, qos_reliable.get_rmw_qos_profile());
-        pcl_sub_.subscribe(this, pcl_topic, qos_reliable.get_rmw_qos_profile());
+        // 1. CameraInfoの取得 (一度だけ取得)
+        info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+            info_topic_, qos_reliable,
+            std::bind(&DepthToPointCloud::info_callback, this, std::placeholders::_1));
 
-        // 同期ポリシー (ApproximateTime: 異なるノード経由なので多少の遅延ズレを許容する)
-        sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(
-            SyncPolicy(10), rgb_sub_, pcl_sub_
-        );
-        sync_->registerCallback(std::bind(&VerifyConvertedPCL::callback, this, std::placeholders::_1, std::placeholders::_2));
+        // 2. 深度画像の購読
+        depth_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
+            depth_topic_, qos_reliable,
+            std::bind(&DepthToPointCloud::depth_callback, this, std::placeholders::_1));
 
-        RCLCPP_INFO(this->get_logger(), "Verification Node Started.");
-        RCLCPP_INFO(this->get_logger(), "Listening to: %s AND %s", rgb_topic.c_str(), pcl_topic.c_str());
+        // 3. ポイントクラウドの発行
+        pcl_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(pub_topic_, qos_reliable);
+
+        RCLCPP_INFO(this->get_logger(), "Converter Node Started. (SIM defaults)");
+        RCLCPP_INFO(this->get_logger(), "Input Depth: %s", depth_topic_.c_str());
+        RCLCPP_INFO(this->get_logger(), "Input Info : %s", info_topic_.c_str());
+        RCLCPP_INFO(this->get_logger(), "Output Cloud: %s", pub_topic_.c_str());
     }
 
 private:
-    void callback(const sensor_msgs::msg::Image::ConstSharedPtr& rgb_msg,
-                  const sensor_msgs::msg::PointCloud2::ConstSharedPtr& pcl_msg)
+    void info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr msg)
     {
-        try {
-            // 1. RGB画像をOpenCV形式に変換
-            cv::Mat color_img = cv_bridge::toCvCopy(rgb_msg, "bgr8")->image;
-
-            // 2. PointCloud2をPCL形式に変換
-            // 前回の変換プログラムは XYZ のみを出力しているので PointXYZ を使う
-            pcl::PointCloud<pcl::PointXYZ> cloud;
-            pcl::fromROSMsg(*pcl_msg, cloud);
-
-            // Ordered Cloudチェック (変換プログラムが正しければ height > 1 のはず)
-            if (cloud.height <= 1) {
-                RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000, 
-                    "Received Unordered Cloud! Something is wrong with the converter.");
-                return;
-            }
-
-            // 3. 中心座標の取得
-            int center_x = color_img.cols / 2;
-            int center_y = color_img.rows / 2;
-
-            // 自作変換ノードは画像のピクセル並び順を維持しているため、座標(x,y)でアクセス可能
-            pcl::PointXYZ pt = cloud(center_x, center_y);
-
-            // 4. 情報表示
-            std::string text = "NaN (Invalid)";
-            cv::Scalar color(0, 0, 255); // Red
-
-            // 値が有効かチェック
-            if (std::isfinite(pt.x) && std::isfinite(pt.y) && std::isfinite(pt.z)) {
-                std::stringstream ss;
-                ss << "X:" << std::fixed << std::setprecision(3) << pt.x << " "
-                   << "Y:" << std::fixed << std::setprecision(3) << pt.y << " "
-                   << "Z:" << std::fixed << std::setprecision(3) << pt.z << "m";
-                text = ss.str();
-                color = cv::Scalar(0, 255, 0); // Green
-            }
-
-            // 5. 描画
-            cv::circle(color_img, cv::Point(center_x, center_y), 5, color, -1);
-            
-            // 文字に黒い縁取りをつけて見やすくする
-            cv::putText(color_img, text, cv::Point(center_x - 100, center_y - 20),
-                        cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0,0,0), 4);
-            cv::putText(color_img, text, cv::Point(center_x - 100, center_y - 20),
-                        cv::FONT_HERSHEY_SIMPLEX, 0.7, color, 2);
-
-            cv::imshow("Verification View", color_img);
-            cv::waitKey(1);
-
-        } catch (const std::exception& e) {
-            RCLCPP_ERROR(this->get_logger(), "Error: %s", e.what());
+        if (!intrinsics_received_) {
+            // カメラ内部パラメータの保存
+            // K = [fx, 0, cx, 0, fy, cy, 0, 0, 1]
+            fx_ = msg->k[0];
+            cx_ = msg->k[2];
+            fy_ = msg->k[4];
+            cy_ = msg->k[5];
+            frame_id_ = msg->header.frame_id; // depth_optical_frame等
+            intrinsics_received_ = true;
+            RCLCPP_INFO(this->get_logger(), "Intrinsics Set: fx=%.2f, fy=%.2f, cx=%.2f, cy=%.2f", fx_, fy_, cx_, cy_);
         }
     }
 
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::PointCloud2> SyncPolicy;
-    message_filters::Subscriber<sensor_msgs::msg::Image> rgb_sub_;
-    message_filters::Subscriber<sensor_msgs::msg::PointCloud2> pcl_sub_;
-    std::shared_ptr<message_filters::Synchronizer<SyncPolicy>> sync_;
+    void depth_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+    {
+        if (!intrinsics_received_) return;
+
+        // 深度のエンコーディングを判定:
+        //   sim (ign-gazebo rgbd_camera) : 32FC1  → 値はそのままメートル
+        //   実機 RealSense aligned depth : 16UC1  → 値はミリメートル
+        const std::string & enc = msg->encoding;
+        const bool is_float =
+            (enc == sensor_msgs::image_encodings::TYPE_32FC1 || enc == "32FC1");
+        const bool is_uint16 =
+            (enc == sensor_msgs::image_encodings::TYPE_16UC1 || enc == "16UC1" ||
+             enc == sensor_msgs::image_encodings::MONO16);
+
+        if (!is_float && !is_uint16) {
+            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
+                "Unsupported depth encoding: %s (expect 32FC1[sim] or 16UC1[real])", enc.c_str());
+            return;
+        }
+
+        // 画像をOpenCV形式に変換 (元のエンコーディングのまま受ける)
+        cv_bridge::CvImagePtr cv_ptr;
+        try {
+            cv_ptr = cv_bridge::toCvCopy(msg, enc);
+        } catch (cv_bridge::Exception& e) {
+            RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
+            return;
+        }
+
+        // PointCloud2メッセージの作成
+        auto cloud_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+        cloud_msg->header = msg->header; // タイムスタンプ/フレームIDを継承
+        cloud_msg->height = msg->height;
+        cloud_msg->width = msg->width;
+        cloud_msg->is_dense = false; // 無効な点(NaN)が含まれる可能性があるためfalse
+        cloud_msg->is_bigendian = false;
+
+        // フィールドの設定 (x, y, z)
+        sensor_msgs::PointCloud2Modifier modifier(*cloud_msg);
+        modifier.setPointCloud2FieldsByString(1, "xyz");
+        modifier.resize(msg->height * msg->width);
+
+        cloud_msg->height = msg->height;
+        cloud_msg->width = msg->width;
+        cloud_msg->row_step = cloud_msg->width * cloud_msg->point_step; // 行ごとのバイト数も更新
+
+        // イテレータの準備 (データを書き込むためのポインタ)
+        sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud_msg, "x");
+        sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud_msg, "y");
+        sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud_msg, "z");
+
+        const cv::Mat& depth_img = cv_ptr->image;
+        const float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+        // 全ピクセルを走査して3次元座標へ変換
+        for (int v = 0; v < depth_img.rows; ++v)
+        {
+            for (int u = 0; u < depth_img.cols; ++u)
+            {
+                // 深度値をメートルで取得 (エンコーディングに応じて変換)
+                float z;
+                if (is_float) {
+                    z = depth_img.at<float>(v, u);              // 既にメートル
+                } else {
+                    uint16_t depth_raw = depth_img.at<uint16_t>(v, u);
+                    z = static_cast<float>(depth_raw) / 1000.0f; // mm → m
+                }
+
+                // 有効値判定 (sim は無効画素を inf/0 で出すため isfinite も見る)
+                if (std::isfinite(z) && z > 0.0f) {
+                    // Pinhole Camera Model 逆投影
+                    float x = (static_cast<float>(u) - cx_) * z / fx_;
+                    float y = (static_cast<float>(v) - cy_) * z / fy_;
+
+                    *iter_x = x;
+                    *iter_y = y;
+                    *iter_z = z;
+                } else {
+                    // 無効なデータは NaN に設定 (Octomap等は NaN を無視)
+                    *iter_x = bad_point;
+                    *iter_y = bad_point;
+                    *iter_z = bad_point;
+                }
+
+                // イテレータを進める
+                ++iter_x;
+                ++iter_y;
+                ++iter_z;
+            }
+        }
+
+        // 発行
+        pcl_pub_->publish(*cloud_msg);
+    }
+
+    // メンバ変数
+    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr info_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr depth_sub_;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_pub_;
+
+    std::string depth_topic_, info_topic_, pub_topic_;
+    bool intrinsics_received_ = false;
+    double fx_, fy_, cx_, cy_;
+    std::string frame_id_;
 };
 
 int main(int argc, char** argv)
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<VerifyConvertedPCL>();
+    auto node = std::make_shared<DepthToPointCloud>();
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;

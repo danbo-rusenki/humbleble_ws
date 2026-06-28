@@ -14,5 +14,7 @@ endif()
 
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 install(FILES .setup_assistant DESTINATION share/${PROJECT_NAME})
-install(PROGRAMS scripts/joint_state_filter.py
+install(PROGRAMS
+  scripts/joint_state_filter.py
+  scripts/octomap_cloud_relay.py
   DESTINATION lib/${PROJECT_NAME})
