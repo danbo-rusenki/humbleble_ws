@@ -35,7 +35,6 @@ find_package(behavior_tree_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(cv_bridge REQUIRED)
 #find_package(realsense2_camera_msgs REQUIRED)
-find_package(darknet_ros_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(pcl_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -92,7 +91,6 @@ set(dependencies
   Eigen3
   sensor_msgs
   cv_bridge
-  darknet_ros_msgs
   pcl_conversions
   pcl_msgs
   PCL

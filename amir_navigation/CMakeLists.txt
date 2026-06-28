@@ -22,7 +22,6 @@ find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 #find_package(realsense2_camera_msgs REQUIRED)
-find_package(darknet_ros_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(pcl_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -40,17 +39,6 @@ add_executable(test_posi
 add_executable(posi
   src/posi.cpp
 )
-add_executable(image_show
-  src/image_show.cpp
-)
-
-add_executable(bottle
-  src/bottle.cpp
-)
-
-add_executable(score
-  src/score.cpp
-)
 
 set(dependencies
   rclcpp 
@@ -66,7 +54,6 @@ set(dependencies
   sensor_msgs
   cv_bridge
   #realsense2_camera_msgs
-  darknet_ros_msgs
   pcl_conversions
   pcl_msgs
   PCL
@@ -76,16 +63,10 @@ set(dependencies
 
 ament_target_dependencies(test_posi ${dependencies})
 ament_target_dependencies(posi ${dependencies})
-ament_target_dependencies(image_show ${dependencies})
-ament_target_dependencies(bottle ${dependencies})
-ament_target_dependencies(score ${dependencies})
 
 install(TARGETS
   test_posi
   posi
-  image_show
-  bottle
-  score
   DESTINATION lib/${PROJECT_NAME})
 
 # uncomment the following section in order to fill in
