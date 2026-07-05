@@ -15,9 +15,11 @@ class RoverTwistRelayIgn(Node):
     def __init__(self):
         super().__init__('rover_twist_relay_ign')
         # mecanum_drive_controller v2.x uses ~/reference_unstamped (Twist), not ~/cmd_vel
-        self._pub = self.create_publisher(Twist, '/mecanum_drive_controller/reference_unstamped', 10)
+        # 相対トピック名にして launch の namespace で prefix されるようにする
+        # (namespace 空なら従来どおり /rover_twist, /mecanum_drive_controller/... で解決)
+        self._pub = self.create_publisher(Twist, 'mecanum_drive_controller/reference_unstamped', 10)
         self._sub = self.create_subscription(
-            Twist, '/rover_twist',
+            Twist, 'rover_twist',
             lambda msg: self._pub.publish(msg),
             10,
         )

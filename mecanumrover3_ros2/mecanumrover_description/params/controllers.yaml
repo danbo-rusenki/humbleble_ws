@@ -1,4 +1,7 @@
-controller_manager:
+# ノード名キーを /** ワイルドカードにして、controller_manager が
+# root (/controller_manager, 単体) でも namespace 付き
+# (/amir1/controller_manager, マルチロボット) でもマッチするようにする。
+/**/controller_manager:
   ros__parameters:
     # シミュレーション物理ステップ (max_step_size=0.004 s = 250 Hz) に合わせる
     update_rate: 250
@@ -12,7 +15,7 @@ controller_manager:
       type: mecanum_drive_controller/MecanumDriveController
 
 
-joint_state_broadcaster:
+/**/joint_state_broadcaster:
   ros__parameters:
     # ミミックジョイントを含む全ジョイントを明示 (固定ジョイントを除く)
     joints:
@@ -33,7 +36,7 @@ joint_state_broadcaster:
       - left_inner_front_joint
 
 
-mecanum_drive_controller:
+/**/mecanum_drive_controller:
   ros__parameters:
     use_stamped_vel: false
     reference_timeout: 1.0

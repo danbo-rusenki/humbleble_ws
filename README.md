@@ -59,6 +59,40 @@ ros2 launch amir_gazebo gazebo_bringup2.launch.py
 source install/setup.bash 
 ros2 launch amir_gazebo gazebo_bringup3.launch.py
 ```
+
+複数ロボット (namespace 付きシミュレーション)
+```bash
+source install/setup.bash
+ros2 launch amir_gazebo multi_robot.launch.py
+# world を変える例:
+ros2 launch amir_gazebo multi_robot.launch.py world:=warehouse_world.sdf world_name:=warehouse_world
+```
+- `amir1` が gz_sim 本体 + `/clock` を起動し、`amir2` は同じ world に spawn を追加する。
+- 各ロボットの topic は `/amir1/scan` `/amir1/odom` `/amir1/joint_states`、
+  controller は `/amir1/controller_manager` 配下。
+- **TF はロボットごとに分離** (`/amir1/tf` `/amir2/tf`)。フレーム名は標準名
+  (`base_footprint` `odom` `map` 等) のまま、topic が分離されるので衝突しない。
+  → MoveIt/Nav2/amir_operation はフレーム無改修で namespace 起動できる。
+- 台数を増やすときは `multi_robot.launch.py` の `_ROBOTS` に行を追加する。
+- 単体を namespace 付きで起動: `ros2 launch amir_gazebo robot_bringup.launch.py namespace:=amir1`
+- 従来の `gazebo_bringup*.launch.py` は `namespace=""` の単体起動 (挙動は従来どおり)。
+
+各ロボットの上位スタックは別端末で namespace を付けて起動する:
+```bash
+# MoveIt2 (RViz を切るなら use_rviz:=false)
+ros2 launch amir_moveit_config moveit_gazebo.launch.py namespace:=amir1
+
+ros2 launch amir_moveit_config moveit_gazebo.launch.py namespace:=amir1 nav2:=true
+# pick/place/move_meca アクションサーバー
+ros2 launch amir_operation pick_and_place_launch.py namespace:=amir1
+# Nav2 + slam_toolbox
+ros2 launch mecanum_navigation2 bringup_launch.py use_namespace:=true namespace:=amir1
+```
+- amir2 は上記の `amir1` を `amir2` に変えて別端末で起動する。
+- BT の namespace 化は未対応。
+- ※MoveIt と Nav2 を**同時**起動すると `odom` の親が競合する (moveit の
+  `world→odom` と slam の `map→odom`)。個別運用 (どちらか一方) は問題なし。
+
 ```bash
 source install/setup.bash 
 ros2 launch mecanumrover3_gazebo spawn_koteibox.launch.py 

@@ -72,7 +72,7 @@ static void closeGripperGradually(
 
     std::atomic<double> g_pos{GRIPPER_OPEN};
     auto js_sub = node->create_subscription<JointState>(
-        "/joint_states", rclcpp::QoS(10),
+        "joint_states", rclcpp::QoS(10),
         [&g_pos](JointState::ConstSharedPtr msg) {
             for (size_t i = 0; i < msg->name.size(); ++i) {
                 if (msg->name[i] == "Gripper") {
@@ -162,8 +162,9 @@ public:
     {
         using namespace std::placeholders;
 
+        // 相対名: ノードの namespace で /<ns>/gripper_controller/... に解決される
         gripper_client_ = rclcpp_action::create_client<GripperCommand>(
-            this, "/gripper_controller/gripper_cmd");
+            this, "gripper_controller/gripper_cmd");
 
         action_server_ = rclcpp_action::create_server<Pick>(
             this, "pick",

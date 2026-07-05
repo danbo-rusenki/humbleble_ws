@@ -46,7 +46,8 @@ bt_navigator:
     use_sim_time: True
     global_frame: map
     robot_base_frame: base_footprint
-    odom_topic: /odom
+    # 相対名: namespace 配下で /<ns>/odom に解決 (フレーム名は標準のまま)
+    odom_topic: odom
     bt_loop_duration: 10
     default_server_timeout: 20
     wait_for_service_timeout: 1000
@@ -214,7 +215,7 @@ local_costmap:
         enabled: True
         observation_sources: scan
         scan:
-          topic: /scan
+          topic: scan
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -263,7 +264,7 @@ global_costmap:
         enabled: True
         map_subscribe_transient_local: True
         subscribe_to_updates: true
-        map_topic: /map
+        map_topic: map
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: True

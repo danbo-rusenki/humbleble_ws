@@ -35,14 +35,15 @@ public:
     // publishする場合でも受信できるよう互換性を確保する
     auto qos = rclcpp::SensorDataQoS();
     odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
-      "/odom", qos,
+      "odom", qos,
       [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
         std::lock_guard<std::mutex> lock(odom_mutex_);
         odom_ = *msg;
         odom_received_.store(true);
       });
 
-    twist_pub_ = create_publisher<geometry_msgs::msg::Twist>("/rover_twist", rclcpp::QoS(10));
+    // 相対名: ノードの namespace で /<ns>/odom, /<ns>/rover_twist に解決される
+    twist_pub_ = create_publisher<geometry_msgs::msg::Twist>("rover_twist", rclcpp::QoS(10));
 
     action_server_ = rclcpp_action::create_server<MoveMeca>(
       this, "amir/move_meca",

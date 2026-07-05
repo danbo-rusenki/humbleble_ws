@@ -4,6 +4,11 @@
   <xacro:arg name="front_laser_visual" default="false" />
   <xacro:arg name="back_laser_visual" default="false" />
 
+  <!-- マルチロボット用 namespace (空なら従来どおり無 prefix) -->
+  <xacro:arg name="namespace" default=""/>
+  <xacro:property name="robot_ns" value="$(arg namespace)"/>
+  <xacro:property name="ns_prefix" value="${robot_ns + '/' if robot_ns else ''}"/>
+
   <xacro:property name="DEG_TO_RAD" value="0.01745329251994329577" />
   <!-- ±90° = 180° FOV: front/back LRF each covers only its own hemisphere -->
   <xacro:property name="LRF_ANGLE" value="90" />
@@ -35,7 +40,7 @@
           <stddev>0.01</stddev>
         </noise>
       </ray>
-      <topic>scan</topic>
+      <topic>/${ns_prefix}scan</topic>
       <ignition_frame_id>front_lrf_link</ignition_frame_id>
     </sensor>
   </gazebo>
@@ -69,7 +74,7 @@
           <stddev>0.01</stddev>
         </noise>
       </ray>
-      <topic>back_scan</topic>
+      <topic>/${ns_prefix}back_scan</topic>
       <ignition_frame_id>back_lrf_link</ignition_frame_id>
     </sensor>
   </gazebo>

@@ -14,8 +14,10 @@ from geometry_msgs.msg import Twist
 class CmdVelRelay(Node):
     def __init__(self):
         super().__init__('cmd_vel_relay')
-        self._pub = self.create_publisher(Twist, '/rover_twist', 10)
-        self.create_subscription(Twist, '/cmd_vel', self._pub.publish, 10)
+        # 相対名: namespace 配下で /<ns>/cmd_vel → /<ns>/rover_twist に解決
+        # (namespace 無しなら従来どおり /cmd_vel → /rover_twist)
+        self._pub = self.create_publisher(Twist, 'rover_twist', 10)
+        self.create_subscription(Twist, 'cmd_vel', self._pub.publish, 10)
         self.get_logger().info('cmd_vel_relay: /cmd_vel → /rover_twist')
 
 

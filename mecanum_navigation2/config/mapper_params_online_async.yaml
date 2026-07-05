@@ -13,7 +13,8 @@ slam_toolbox:
     odom_frame: odom
     map_frame: map
     base_frame: base_footprint
-    scan_topic: /scan
+    # 相対名: namespace 配下で /<ns>/scan に解決 (単体なら /scan)
+    scan_topic: scan
     mode: mapping
 
     debug_logging: false

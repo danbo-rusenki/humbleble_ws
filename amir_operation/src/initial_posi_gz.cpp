@@ -13,11 +13,12 @@ public:
   JointTrajectoryPublisher(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
   : Node("vis_joint_publisher", options)
   {
+    // 相対名: ノードの namespace で /<ns>/arm_controller, /<ns>/gripper_controller に解決
     arm_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
-      "/arm_controller/joint_trajectory", 10);
+      "arm_controller/joint_trajectory", 10);
 
     gripper_client_ = rclcpp_action::create_client<GripperCommand>(
-      this, "/gripper_controller/gripper_cmd");
+      this, "gripper_controller/gripper_cmd");
 
     // 修正：create_timer を create_wall_timer に戻す
     timer_ = this->create_wall_timer(

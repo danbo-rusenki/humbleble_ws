@@ -12,6 +12,11 @@ ros_gz_bridge で ROS2 トピックへ変換する。
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
+  <!-- マルチロボット用 namespace (空なら従来どおり無 prefix) -->
+  <xacro:arg name="namespace" default=""/>
+  <xacro:property name="robot_ns" value="$(arg namespace)"/>
+  <xacro:property name="ns_prefix" value="${robot_ns + '/' if robot_ns else ''}"/>
+
   <xacro:macro name="gazebo_d435" params="camera_name reference_link topics_ns depth_optical_frame color_optical_frame infrared1_optical_frame infrared2_optical_frame publish_pointcloud:=true">
 
     <gazebo reference="${reference_link}">
@@ -42,7 +47,7 @@ ros_gz_bridge で ROS2 トピックへ変換する。
         <always_on>true</always_on>
         <update_rate>5</update_rate>
         <visualize>true</visualize>
-        <topic>${topics_ns}</topic>
+        <topic>/${ns_prefix}${topics_ns}</topic>
         <ignition_frame_id>${depth_optical_frame}</ignition_frame_id>
       </sensor>
     </gazebo>

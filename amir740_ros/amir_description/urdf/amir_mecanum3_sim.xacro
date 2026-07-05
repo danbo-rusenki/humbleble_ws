@@ -1,6 +1,12 @@
 <?xml version="1.0" ?>
 <robot name="amir_mecanum3" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+  <!-- マルチロボット用 namespace 引数 (空なら従来どおり単体・無 prefix)
+       include 先 (mecanum3.gazebo / tg30_mecanum3.gazebo / _d435.gazebo.xacro)
+       が Ignition 側の topic / frame_id を ${namespace}/ で prefix する。
+       TF フレーム自体は launch 側 robot_state_publisher の frame_prefix で付与。 -->
+  <xacro:arg name="namespace" default=""/>
+
   <!-- メカナムローバー URDF
        mecanum3.gazebo (gz_ros2_control-system) と
        mecanum3_ros2_control.xacro (MecanumSystem) を含む -->

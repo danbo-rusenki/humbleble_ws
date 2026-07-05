@@ -1,11 +1,22 @@
 <?xml version="1.0"?>
 <robot name="mecanum3" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- Ignition Gazebo gz_ros2_control plugin -->
+  <!-- マルチロボット用 namespace (空なら従来どおり無 prefix) -->
+  <xacro:arg name="namespace" default=""/>
+  <xacro:property name="robot_ns" value="$(arg namespace)"/>
+  <!-- prefix 文字列: namespace 空→"" , "amir1"→"amir1/" -->
+  <xacro:property name="ns_prefix" value="${robot_ns + '/' if robot_ns else ''}"/>
+
+  <!-- Ignition Gazebo gz_ros2_control plugin
+       <ros><namespace> で controller_manager / joint_states を
+       /<ns>/... 配下へ移す (マルチロボットでの衝突回避) -->
   <gazebo>
     <plugin filename="gz_ros2_control-system"
             name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>$(find mecanumrover_description)/params/controllers.yaml</parameters>
+      <ros>
+        <namespace>${robot_ns}</namespace>
+      </ros>
     </plugin>
   </gazebo>
 
@@ -20,10 +31,12 @@
     <plugin filename="ignition-gazebo-odometry-publisher-system"
             name="ignition::gazebo::systems::OdometryPublisher">
       <odom_publish_frequency>50</odom_publish_frequency>
-      <odom_topic>/odom</odom_topic>
+      <!-- topic 名は prefix (sim バス衝突回避)、frame 名は無 prefix
+           (ロボットごとの /tf に載せるので frame は標準名で衝突しない) -->
+      <odom_topic>/${ns_prefix}odom</odom_topic>
       <odom_frame>odom</odom_frame>
       <robot_base_frame>base_footprint</robot_base_frame>
-      <tf_topic>/odom/tf</tf_topic>
+      <tf_topic>/${ns_prefix}odom/tf</tf_topic>
     </plugin>
   </gazebo>
 

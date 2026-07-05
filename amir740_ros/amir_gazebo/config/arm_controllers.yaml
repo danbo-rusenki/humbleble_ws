@@ -1,7 +1,9 @@
 # AMIR アーム コントローラー設定 (Gazebo シミュレーション用)
 # spawner -t <type> -p <this_file> で controller_manager に登録する
+# ノード名キーは /** ワイルドカードにして root (単体) でも namespace 付き
+# (/amir1/arm_controller 等, マルチロボット) でもマッチさせる。
 
-arm_controller:
+/**/arm_controller:
   ros__parameters:
     joints:
       - Joint_1
@@ -40,7 +42,7 @@ arm_controller:
 # Servo 運用時に switch_controllers で arm_controller と切り替える。
 #   有効化: ros2 control switch_controllers --deactivate arm_controller --activate forward_position_controller
 #   復帰:   ros2 control switch_controllers --deactivate forward_position_controller --activate arm_controller
-forward_position_controller:
+/**/forward_position_controller:
   ros__parameters:
     joints:
       - Joint_1
@@ -50,7 +52,7 @@ forward_position_controller:
       - Joint_5
     interface_name: position
 
-gripper_controller:
+/**/gripper_controller:
   ros__parameters:
     joint: Gripper
     allow_stalling: true

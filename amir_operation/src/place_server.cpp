@@ -99,8 +99,9 @@ public:
     {
         using namespace std::placeholders;
 
+        // 相対名: ノードの namespace で /<ns>/gripper_controller/... に解決される
         gripper_client_ = rclcpp_action::create_client<GripperCommand>(
-            this, "/gripper_controller/gripper_cmd");
+            this, "gripper_controller/gripper_cmd");
 
         action_server_ = rclcpp_action::create_server<Place>(
             this, "place",
